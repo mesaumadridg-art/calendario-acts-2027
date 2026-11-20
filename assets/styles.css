@@ -473,6 +473,35 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round
 .ev-meta span { display: inline-flex; align-items: center; gap: 5px; }
 .ev-meta svg { width: 13px; height: 13px; opacity: .65; flex: none; }
 .ev-nota { font-size: 12.5px; color: var(--tinta-2); margin-top: 3px; max-width: 78ch; line-height: 1.5; }
+.ev-decision { font-size: 12px; margin: 8px 0 0; padding: 7px 10px; border-radius: 9px; line-height: 1.45;
+               background: color-mix(in srgb, var(--oro) 13%, transparent);
+               border-left: 2.5px solid var(--oro); color: var(--tinta); }
+.ev-decision b { color: var(--vino); font-weight: 600; }
+
+/* diagnóstico de fecha, dentro del modal */
+.diag { display: flex; flex-direction: column; gap: 6px; }
+.diag__item { display: flex; gap: 9px; align-items: flex-start; padding: 8px 11px; border-radius: 10px;
+              border-left: 3px solid var(--linea); background: rgba(31, 26, 23, .035); }
+.diag__item.alto { border-left-color: #a3232b; background: rgba(163, 35, 43, .08); }
+.diag__item.medio { border-left-color: var(--oro); background: rgba(168, 132, 47, .13); }
+.diag__item.bajo { border-left-color: #6b7a5a; background: rgba(107, 122, 90, .08); }
+.diag__ico { font-family: var(--serif); font-size: 12px; font-weight: 700; width: 18px; height: 18px;
+             border-radius: 50%; display: grid; place-items: center; flex: none; margin-top: 1px;
+             background: var(--tinta-3); color: var(--blanco); }
+.diag__item.alto .diag__ico { background: #a3232b; }
+.diag__item.medio .diag__ico { background: var(--oro); }
+.diag__item.bajo .diag__ico { background: #6b7a5a; }
+.diag__t { font-size: 12.5px; font-weight: 600; margin: 0; color: var(--tinta); }
+.diag__d { font-size: 12px; margin: 1px 0 0; color: var(--tinta-2); line-height: 1.45; }
+.diag__ok { font-size: 12.5px; color: #3c6b5a; margin: 0; }
+.diag__sug { font-size: 12px; margin: 12px 0 0; padding-top: 10px; border-top: 1px dashed var(--linea);
+             color: var(--tinta-2); }
+.diag__item.medio .diag__d { color: #5a4620; }
+#f_decision { min-height: 86px; resize: vertical; }
+.diag__usar { font: inherit; font-size: 12px; color: var(--vino); background: var(--blanco);
+              border: 1px solid var(--linea); border-radius: 999px; cursor: pointer;
+              padding: 4px 12px; margin-left: 4px; transition: border-color .25s, background .25s; }
+.diag__usar:hover { border-color: var(--vino); background: rgba(122, 27, 54, .06); }
 
 .ev-lado { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .etiqueta {

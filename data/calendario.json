@@ -1671,6 +1671,48 @@
    "nota": ""
   }
  ],
+ "periodos": [
+  {
+   "desde": "2027-03-21",
+   "hasta": "2027-03-27",
+   "nombre": "Semana Santa",
+   "clase": "Litúrgico",
+   "nota": "Del Domingo de Ramos al Sábado Santo: no se programa nada.",
+   "fuerte": true
+  },
+  {
+   "desde": "2027-07-28",
+   "hasta": "2027-08-06",
+   "nombre": "Novena y fiesta patronal",
+   "clase": "Parroquial",
+   "nota": "La parroquia entera está en la novena y en la fiesta del 6.",
+   "fuerte": true
+  },
+  {
+   "desde": "2027-09-06",
+   "hasta": "2027-09-19",
+   "nombre": "Semana Cívica",
+   "clase": "Cívico",
+   "nota": "Ensayos, desfiles y actos patrios: no se programa nada.",
+   "fuerte": true
+  },
+  {
+   "desde": "2027-10-04",
+   "hasta": "2027-10-10",
+   "nombre": "Semana Morazánica",
+   "clase": "Feriado",
+   "nota": "Decreto 78-2015: se trasladan aquí los feriados de octubre.",
+   "fuerte": true
+  },
+  {
+   "desde": "2027-11-28",
+   "hasta": "2027-12-24",
+   "nombre": "Adviento",
+   "clase": "Litúrgico",
+   "nota": "Tiempo de preparación: se puede programar, pero con sobriedad.",
+   "fuerte": false
+  }
+ ],
  "juntasEF": [
   {
    "n": 1,

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=7">
+<link rel="stylesheet" href="assets/styles.css?v=8">
 </head>
 <body>
 
@@ -371,6 +371,10 @@
         </datalist>
       </div>
 
+      <div class="campo campo--ancho" id="zonaDiag">
+        <div class="diag" id="diag" aria-live="polite"></div>
+      </div>
+
       <div class="campo">
         <label for="f_tipo">Tipo</label>
         <select id="f_tipo" name="tipo"></select>
@@ -389,6 +393,11 @@
       <div class="campo campo--ancho">
         <label for="f_nota">Nota</label>
         <textarea id="f_nota" name="nota" rows="3" placeholder="Detalle, documento que se entrega, condición…"></textarea>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="f_decision">Decisión del EF <span class="ayuda">(se guarda en el acta, aunque no cambies nada más)</span></label>
+        <textarea id="f_decision" name="decision" rows="3" placeholder="Ej. Se aprueba mover la venta al sábado 12; queda pendiente confirmar el salón."></textarea>
       </div>
 
       <div class="campo campo--ancho">
@@ -466,6 +475,6 @@
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
-<script type="module" src="assets/app.js?v=7"></script>
+<script type="module" src="assets/app.js?v=8"></script>
 </body>
 </html>

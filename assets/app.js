@@ -23,6 +23,7 @@ const ESTADO = {
   filtros: { q: "", grupo: "", tipo: "" },
   reunion: false,
   cambios: { creados: [], editados: {}, borrados: [] },
+  decisiones: {},       // acuerdo del EF por actividad
   historial: [],
   autor: "",
   tema: "",
@@ -58,6 +59,7 @@ function leerLocal() {
   try {
     const g = JSON.parse(localStorage.getItem(CLAVE) || "{}");
     ESTADO.cambios = g.cambios || ESTADO.cambios;
+    ESTADO.decisiones = g.decisiones || {};
     ESTADO.historial = g.historial || [];
     ESTADO.autor = g.autor || "";
     ESTADO.tema = g.tema || "";
@@ -68,6 +70,7 @@ function leerLocal() {
 function guardarLocal() {
   localStorage.setItem(CLAVE, JSON.stringify({
     cambios: ESTADO.cambios,
+    decisiones: ESTADO.decisiones,
     historial: ESTADO.historial,
     autor: ESTADO.autor,
     tema: ESTADO.tema,
@@ -321,6 +324,7 @@ function tarjeta(e) {
   const editado = !!ESTADO.cambios.editados[e.id];
   const nuevo = e.id.startsWith("nuevo-");
   const nota = e.nota ? `<p class="ev-nota">${esc(e.nota)}</p>` : "";
+  const acuerdo = ESTADO.decisiones[e.id]?.texto;
   return `<article class="evento ${editado ? "editado" : ""} ${nuevo ? "nuevo" : ""}"
       data-id="${e.id}" style="--c:${e.color}" tabindex="0" role="button" aria-label="${esc(e.actividad)}">
     <div class="ev-fecha ${e.finde ? "ev-finde" : ""}">
@@ -334,6 +338,7 @@ function tarjeta(e) {
         ${e.lugar ? `<span><svg viewBox="0 0 24 24"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>${esc(e.lugar)}</span>` : ""}
       </div>
       ${nota}
+      ${acuerdo ? `<p class="ev-decision"><b>Acuerdo del EF:</b> ${esc(acuerdo)}</p>` : ""}
     </div>
     <div class="ev-lado">
       <span class="etiqueta" style="--c:${e.color}">${e.tipoNombre}</span>
@@ -480,6 +485,7 @@ function abrirEvento(id) {
     ${e.responsable ? `<div class="det__fila"><b>Responsable</b><span>${esc(e.responsable)}</span></div>` : ""}
     ${e.lugar ? `<div class="det__fila"><b>Lugar</b><span>${esc(e.lugar)}</span></div>` : ""}
     ${e.nota ? `<div class="det__fila"><b>Nota</b><span>${esc(e.nota)}</span></div>` : ""}
+    ${ESTADO.decisiones[e.id] ? `<div class="det__fila"><b>Decisión del EF</b><span>${esc(ESTADO.decisiones[e.id].texto)}</span></div>` : ""}
     <div class="det__fila"><b>Referencia</b><span>${refDe(e.tipo)}</span></div>
     <p style="margin-top:22px"><button class="btn solo-lectura" data-editar="${e.id}">Editar esta actividad</button></p>`);
 }
@@ -496,6 +502,153 @@ function refDe(tipo) {
     HITO: ["reporte-final", "Manual · cap. 9"],
   }[tipo] || ["formacion-13", "Manual del Retiro de ACTS"];
   return `<a href="#" data-manual="${r[0]}" style="color:var(--oro);text-decoration:none;border-bottom:1px dashed currentColor">${r[1]}</a>`;
+}
+
+/* ------------------------------------------------------- diagnóstico de fecha */
+
+const isoLocal = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const diasEntre = (a, b) => Math.round((fechaDe(b) - fechaDe(a)) / 86400000);
+const NOMBRE_DIA = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+
+/** Devuelve la lista de avisos de una fecha propuesta: choques, bloqueos, ritmo y efecto dominó. */
+function diagnostico(fecha, hora, tipo, id) {
+  const avisos = [];
+  if (!fecha || !ESTADO.datos) return avisos;
+  const d = ESTADO.datos;
+  const f = fechaDe(fecha);
+  const wd = f.getDay();
+  const otros = ESTADO.eventos.filter((e) => e.id !== id);
+  const mismo = otros.filter((e) => e.fecha === fecha);
+  const hMin = horaMin(hora);
+
+  if (f.getFullYear() !== 2027) {
+    avisos.push({ n: "alto", t: "Fuera del año", d: "El calendario es de 2027 y esa fecha cae en otro año." });
+  }
+
+  const blo = d.bloqueos.find((b) => b.fecha === fecha);
+  if (blo) {
+    avisos.push({ n: "alto", t: `Choca con ${blo.nombre}`,
+      d: `${blo.clase}${blo.nota ? " · " + blo.nota : ""}. Ese día no se programa.` });
+  }
+
+  for (const p of (d.periodos || [])) {
+    if (fecha >= p.desde && fecha <= p.hasta) {
+      avisos.push({ n: p.fuerte ? "alto" : "bajo", t: `Cae en ${p.nombre}`,
+        d: `${p.nota} (${fmtCorto(p.desde)} al ${fmtCorto(p.hasta)}).` });
+    }
+  }
+
+  for (const r of d.retiros) {
+    if (fecha >= r.desde && fecha <= r.hasta) {
+      avisos.push({ n: "alto", t: `Cae dentro del ${r.nombre}`,
+        d: `Del ${fmtCorto(r.desde)} al ${fmtCorto(r.hasta)}. Esos días están tomados por el retiro.` });
+    }
+  }
+
+  for (const e of mismo) {
+    const pisa = hMin && e.horaMin && Math.abs(e.horaMin - hMin) < 90;
+    avisos.push({ n: pisa ? "alto" : "medio",
+      t: `Ya hay algo ese día: ${e.actividad}`,
+      d: `${e.tipoNombre}${e.hora ? " · " + e.hora.replace(/\.$/, "") : ""}. ${pisa ? "A esa hora se pisan." : "Se puede, pero el día queda cargado."}` });
+  }
+
+  const cerca = otros.filter((e) => Math.abs(diasEntre(e.fecha, fecha)) <= 3);
+  if (cerca.length >= 3) {
+    avisos.push({ n: "medio", t: "La semana queda apretada",
+      d: `Hay ${cerca.length} actividades en los tres días alrededor. La gente se cansa y las ventas bajan.` });
+  }
+
+  if (tipo === "EF" && wd !== 1) {
+    avisos.push({ n: "medio", t: "El EF se reúne los lunes",
+      d: `Ese día es ${NOMBRE_DIA[wd]}. Cambiarlo rompe la junta mensual de las 7:00 p.m.` });
+  }
+  if (["FORV", "FORM"].includes(tipo) && wd !== 0) {
+    avisos.push({ n: "alto", t: "La formación es dominical",
+      d: `Ese día es ${NOMBRE_DIA[wd]}. Las trece juntas van domingo, después de la misa de 9.` });
+  }
+  if (tipo === "CAP" && wd !== 6) {
+    avisos.push({ n: "bajo", t: "La escuela es sábado", d: `Ese día es ${NOMBRE_DIA[wd]}.` });
+  }
+  if (tipo === "ECO" && wd === 0) {
+    avisos.push({ n: "alto", t: "Domingo de junta",
+      d: "No se programa actividad económica en domingo: es el día de la formación y de la Misa." });
+  }
+  if (tipo === "ECO" && wd === 1) {
+    avisos.push({ n: "medio", t: "Lunes de junta del EF", d: "Los lunes quedan para la junta, no para vender." });
+  }
+
+  const e0 = id ? ESTADO.eventos.find((x) => x.id === id) : null;
+  const esJunta = ["FORV", "FORM"].includes(tipo) && (id ? /junta|formaci/i.test(e0?.actividad || "") : true);
+  const ciclo = d.ciclos.find((c) => c.tipo === tipo);
+  if (esJunta && ciclo) {
+    const fechas = ciclo.juntas.map((j) => j.fecha).filter((x) => x !== fecha).sort();
+    const antes = fechas.filter((x) => x < fecha).pop();
+    const despues = fechas.find((x) => x > fecha);
+    if (antes) {
+      const gap = diasEntre(antes, fecha);
+      if (gap < 10) avisos.push({ n: "alto", t: "Rompe el ritmo quincenal",
+        d: `Quedan ${gap} días desde la junta anterior (${fmtCorto(antes)}). El equipo no alcanza a hacer la tarea.` });
+      else if (gap > 21) avisos.push({ n: "medio", t: "Se estira demasiado",
+        d: `${gap} días desde la junta anterior: se pierde el hilo de la formación.` });
+    }
+    if (despues) {
+      const gap2 = diasEntre(fecha, despues);
+      if (gap2 < 10) avisos.push({ n: "alto", t: "Queda pegada a la siguiente",
+        d: `Solo ${gap2} días antes de la junta del ${fmtCorto(despues)}.` });
+    }
+    if (fecha >= ciclo.retiro.desde) {
+      avisos.push({ n: "alto", t: "Después del retiro", d: "La junta quedaría cuando el retiro ya empezó." });
+    }
+    if (ciclo.juntas[0] && Math.abs(diasEntre(ciclo.juntas[0].fecha, fecha)) < 1) {
+      avisos.push({ n: "medio", t: "Arranca el ciclo", d: "Mover la primera junta corre todas las demás." });
+    }
+    avisos.push({ n: "bajo", t: "Efecto dominó",
+      d: "El ciclo se arma por quincenas: si mueves esta junta, revisa las que vienen después." });
+  }
+
+  if (tipo === "RET") {
+    avisos.push({ n: "bajo", t: "Fecha del retiro",
+      d: "Si cambia el retiro, se corre todo el ciclo de formación y las inscripciones." });
+  }
+  return avisos;
+}
+
+/** El día libre más cercano con el mismo día de la semana. */
+function sugerencia(fecha, id) {
+  if (!ESTADO.datos || !fecha) return null;
+  const ocupados = new Set(ESTADO.eventos.filter((e) => e.id !== id).map((e) => e.fecha));
+  const bloq = new Set(ESTADO.datos.bloqueos.map((b) => b.fecha));
+  const base = fechaDe(fecha);
+  for (let k = 1; k <= 5; k++) {
+    for (const signo of [-1, 1]) {
+      const f = new Date(base);
+      f.setDate(f.getDate() + signo * 7 * k);
+      const s = isoLocal(f);
+      if (!s.startsWith("2027")) continue;
+      if (ocupados.has(s) || bloq.has(s)) continue;
+      return s;
+    }
+  }
+  return null;
+}
+
+function pintarDiag() {
+  const caja = $("#diag");
+  if (!caja) return;
+  const fecha = $("#f_fecha").value, hora = $("#f_hora").value, tipo = $("#f_tipo").value || "EF";
+  const avisos = diagnostico(fecha, hora, tipo, EDITANDO);
+  const icono = { alto: "!", medio: "·", bajo: "i" };
+  let html = avisos.length
+    ? avisos.map((a) => `<div class="diag__item ${a.n}">
+        <span class="diag__ico">${icono[a.n]}</span>
+        <div><p class="diag__t">${esc(a.t)}</p><p class="diag__d">${esc(a.d)}</p></div></div>`).join("")
+    : `<p class="diag__ok">La fecha está libre: no choca con nada.</p>`;
+  const sug = sugerencia(fecha, EDITANDO);
+  if (sug && avisos.some((a) => a.n !== "bajo")) {
+    html += `<p class="diag__sug">Día libre más cercano con el mismo día de la semana:
+      <button type="button" class="diag__usar" data-usar-fecha="${sug}">${fmtLargo(sug)}</button></p>`;
+  }
+  caja.innerHTML = html;
 }
 
 /* ------------------------------------------------------------------ edición */
@@ -518,12 +671,14 @@ function abrirEditor(id, fechaPorDefecto, mes) {
   $("#f_responsable").value = e?.responsable || "";
   $("#f_lugar").value = e?.lugar || "";
   $("#f_nota").value = e?.nota || "";
+  $("#f_decision").value = ESTADO.decisiones[id]?.texto || "";
   $("#f_motivo").value = "";
   $("#btnBorrar").hidden = !e;
 
   $("#responsables").innerHTML = [...new Set(ESTADO.eventos.map((x) => x.responsable).filter(Boolean))]
     .sort().map((r) => `<option>${esc(r)}</option>`).join("");
 
+  pintarDiag();
   $("#modal").showModal();
   setTimeout(() => $("#f_actividad").focus(), 60);
 }
@@ -543,14 +698,22 @@ function guardarEditor(ev) {
   if (!datos.actividad || !datos.fecha) return;
   if (!ESTADO.datos.tipos[datos.tipo]) datos.tipo = "EF";
   const motivo = $("#f_motivo").value.trim();
+  const decision = $("#f_decision").value.trim();
   const autor = ESTADO.autor || "Sin nombre";
+  const avisos = diagnostico(datos.fecha, datos.hora, datos.tipo, EDITANDO)
+    .filter((a) => a.n !== "bajo").map((a) => a.t);
+  if (avisos.length && !confirm("La fecha tiene avisos:\n\n· " + avisos.join("\n· ") +
+      "\n\n¿Guardar de todas formas?")) return;
 
   const base = ESTADO.datos.eventos.find((x) => x.id === EDITANDO);
   if (EDITANDO && base) {
     const antes = { ...base, ...(ESTADO.cambios.editados[EDITANDO] || {}) };
     ESTADO.cambios.editados[EDITANDO] = datos;
-    ESTADO.historial.push({ accion: "editar", id: EDITANDO, antes, despues: datos, motivo, autor, fecha: new Date().toISOString() });
-    toast("Cambio guardado");
+    if (decision) ESTADO.decisiones[EDITANDO] = { texto: decision, autor, fecha: new Date().toISOString(), avisos };
+    else delete ESTADO.decisiones[EDITANDO];
+    ESTADO.historial.push({ accion: "editar", id: EDITANDO, antes, despues: datos, motivo, decision, avisos,
+      autor, fecha: new Date().toISOString() });
+    toast(decision ? "Cambio y acuerdo guardados" : "Cambio guardado");
   } else {
     const id = `nuevo-${Date.now()}`;
     const nuevo = {
@@ -560,7 +723,9 @@ function guardarEditor(ev) {
       grupo: ESTADO.datos.tipos[datos.tipo].grupo, horaMin: horaMin(datos.hora), color: ESTADO.datos.tipos[datos.tipo].color,
     };
     ESTADO.cambios.creados.push(nuevo);
-    ESTADO.historial.push({ accion: "crear", id, antes: null, despues: nuevo, motivo, autor, fecha: new Date().toISOString() });
+    if (decision) ESTADO.decisiones[id] = { texto: decision, autor, fecha: new Date().toISOString(), avisos };
+    ESTADO.historial.push({ accion: "crear", id, antes: null, despues: nuevo, motivo, decision, avisos,
+      autor, fecha: new Date().toISOString() });
     toast("Actividad agregada", "ok");
   }
   guardarLocal();
@@ -573,6 +738,7 @@ function borrarEvento(id) {
   const e = ESTADO.eventos.find((x) => x.id === id);
   if (!e) return;
   if (!confirm(`¿Borrar «${e.actividad}» del ${fmtLargo(e.fecha)}?\n\nQuedará registrado en el acta.`)) return;
+  delete ESTADO.decisiones[id];
   if (id.startsWith("nuevo-")) {
     ESTADO.cambios.creados = ESTADO.cambios.creados.filter((x) => x.id !== id);
   } else {
@@ -599,7 +765,13 @@ function deshacer() {
 }
 
 function contarCambios() {
-  return ESTADO.cambios.creados.length + Object.keys(ESTADO.cambios.editados).length + ESTADO.cambios.borrados.length;
+  const ids = new Set([
+    ...Object.keys(ESTADO.cambios.editados),
+    ...ESTADO.cambios.creados.map((e) => e.id),
+    ...ESTADO.cambios.borrados,
+    ...Object.keys(ESTADO.decisiones),
+  ]);
+  return ids.size;
 }
 
 function pintarBarra() {
@@ -639,6 +811,14 @@ Actividades después de los cambios: **${total}** · Cambios registrados: **${ES
 |---|---|---|---|---|---|
 ${filas || "| — | — | Sin cambios registrados | — | — | — |"}
 
+## Decisiones del Equipo Facilitador
+
+${Object.keys(ESTADO.decisiones).length ? "| Actividad | Fecha | Decisión | Quién |\n|---|---|---|---|\n" +
+  Object.entries(ESTADO.decisiones).map(([id, d]) => {
+    const e = ESTADO.eventos.find((x) => x.id === id) || {};
+    return `| ${e.actividad || id} | ${e.fecha ? fmtLargo(e.fecha) : "—"} | ${d.texto} | ${d.autor} |`;
+  }).join("\n") : "_Sin decisiones registradas._"}
+
 ## Notas de la reunión
 
 _Escribe aquí lo que se acordó y no cabe en una fila._
@@ -664,6 +844,7 @@ function cambiosJSON() {
       responsable: e.responsable, lugar: e.lugar, nota: e.nota,
     })),
     cambios: { creados: ESTADO.cambios.creados.map((e) => e.id), editados: ESTADO.cambios.editados, borrados: ESTADO.cambios.borrados },
+    decisiones: ESTADO.decisiones,
     historial: ESTADO.historial,
   };
 }
@@ -788,7 +969,7 @@ function enganchar() {
     `<a href="#mes-${i + 1}" data-mes="${i + 1}">${MESES_C[i]}</a>`).join("");
 
   document.addEventListener("click", (ev) => {
-    const t = ev.target.closest("[data-manual],[data-ir],[data-editar],[data-borrar],[data-agregar],[data-descargar],[data-junta],[data-cerrar-cajon]");
+    const t = ev.target.closest("[data-manual],[data-ir],[data-editar],[data-borrar],[data-agregar],[data-descargar],[data-junta],[data-cerrar-cajon],[data-usar-fecha]");
     if (!t) return;
     if (t.dataset.manual) { ev.preventDefault(); abrirManual(t.dataset.manual); }
     if (t.dataset.ir) { ev.preventDefault(); document.getElementById(`mes-${t.dataset.ir}`)?.scrollIntoView({ behavior: "smooth" }); }
@@ -798,6 +979,7 @@ function enganchar() {
     if (t.dataset.descargar) descargar(t.dataset.descargar);
     if (t.dataset.junta) abrirJunta(t.dataset.ciclo, t.dataset.junta.split("-").pop());
     if (t.hasAttribute("data-cerrar-cajon")) cerrarCajon();
+    if (t.dataset.usarFecha) { $("#f_fecha").value = t.dataset.usarFecha; pintarDiag(); }
   });
 
   // tarjetas de evento
@@ -867,6 +1049,9 @@ function enganchar() {
   });
 
   // modal
+  ["#f_fecha", "#f_hora", "#f_tipo"].forEach((sel) =>
+    $(sel).addEventListener("input", pintarDiag));
+  $("#f_tipo").addEventListener("change", pintarDiag);
   $("#formEvento").addEventListener("submit", guardarEditor);
   $("#btnBorrar").addEventListener("click", () => {
     if (!EDITANDO) return;
