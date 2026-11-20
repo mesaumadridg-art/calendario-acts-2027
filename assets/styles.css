@@ -894,13 +894,7 @@ body.reunion .solo-lectura { display: inline-flex; }
   from { transform: translateY(12px); }
   to   { transform: none; }
 }
-.evento, .clase, .mes-mapa {
-  animation: aparece .5s var(--curva) both;
-  animation-delay: calc(var(--i, 0) * 15ms);
-}
-@media (prefers-reduced-motion: reduce) {
-  .evento, .clase, .mes-mapa { animation: none !important; }
-}
+/* la entrada de las tarjetas la maneja la línea de tiempo del scroll (sección 24) */
 
 
 /* ---------- 23. Criterios ---------- */
@@ -936,3 +930,79 @@ body.reunion .solo-lectura { display: inline-flex; }
 .panel-lista ul, .panel-lista ol { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
 .panel-lista li { font-size: 13px; color: var(--tinta-2); line-height: 1.5; }
 .panel-lista li b { color: var(--tinta); font-weight: 600; }
+
+
+/* ---------- 24. La paloma y el movimiento al hacer scroll ---------- */
+
+.paloma {
+  position: absolute; left: 36%; top: -10%; width: min(40vw, 560px); color: var(--oro-2);
+  opacity: .38; pointer-events: none; will-change: transform;
+  filter: drop-shadow(0 22px 44px rgba(122, 27, 54, .18));
+}
+.paloma__lienzo { transform-origin: 50% 50%; }
+.paloma__cuerpo { fill: currentColor; }
+.paloma__ala  { fill: currentColor; opacity: .55; }
+.paloma__ala--arriba { transform-origin: 92px 60px; animation: aleteo 3.6s ease-in-out infinite; }
+.paloma__ala--abajo  { transform-origin: 96px 80px; animation: aleteo 3.6s ease-in-out infinite reverse; }
+
+@keyframes aleteo {
+  0%, 100% { rotate: -13deg; }
+  50%      { rotate: 15deg; }
+}
+
+/* el ave se mece sola */
+.paloma { animation: planeo 26s ease-in-out infinite; }
+@keyframes planeo {
+  0%, 100% { translate: 0 0; rotate: -1.5deg; }
+  33%      { translate: -14px 10px; rotate: 1deg; }
+  66%      { translate: 8px -12px; rotate: -2deg; }
+}
+
+/* barra de avance de lectura */
+.progreso {
+  position: fixed; inset: 0 0 auto 0; height: 2.5px; z-index: 95; transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--vino), var(--vino-2) 45%, var(--oro-2));
+  opacity: 0;
+}
+
+/* lo moderno: animaciones atadas al scroll, sin JavaScript */
+@supports (animation-timeline: scroll()) {
+  .progreso { opacity: .9; animation: avance linear both; animation-timeline: scroll(root block); }
+  @keyframes avance { from { scale: 0 1; } to { scale: 1 1; } }
+
+  .paloma__lienzo {
+    animation: parpadeo linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 120vh;
+  }
+  @keyframes parpadeo {
+    from { translate: 0 0; scale: 1; }
+    to   { translate: 6% -18%; scale: 1.12; }
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @keyframes entra {
+    from { translate: 0 26px; opacity: .5; }
+    to   { translate: 0 0;    opacity: 1; }
+  }
+  .seccion__cab, .mes-mapa, .ciclo, .bloque {
+    animation: entra linear both;
+    animation-timeline: view();
+    animation-range: entry 4% entry 42%;
+    animation-delay: 0s;
+  }
+}
+
+@media (max-width: 820px) {
+  .paloma { width: 78vw; opacity: .30; top: 2%; left: 28%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paloma, .paloma__ala--arriba, .paloma__ala--abajo, .paloma__lienzo, .progreso { animation: none !important; }
+  .progreso { display: none; }
+}
+
+@media print {
+  .paloma, .progreso { display: none !important; }
+}
