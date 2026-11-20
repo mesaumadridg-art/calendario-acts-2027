@@ -554,19 +554,44 @@ body.reunion .agregar { opacity: 1; pointer-events: auto; }
 
 /* ---------- 10. Escuela ---------- */
 .seccion--oscura {
-  max-width: none; background: #17100d; color: #f4ead8; position: relative; overflow: hidden;
+  --esc-fondo: #17100d;
+  --esc-tinta: #f7eddc;
+  --esc-suave: #cbbcab;
+  --esc-tenue: #9d9081;
+  --esc-linea: rgba(240, 225, 200, .14);
+  --esc-tarjeta: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+  --esc-hover: linear-gradient(160deg, rgba(201,168,92,.10), rgba(255,255,255,.02));
+  --esc-acento: var(--oro-2);
+  max-width: none; background: var(--esc-fondo); color: var(--esc-tinta);
+  position: relative; overflow: hidden;
+  transition: background .5s var(--curva), color .5s var(--curva);
 }
-[data-tema="oscuro"] .seccion--oscura { background: #100c0b; }
+[data-tema="claro"] .seccion--oscura {
+  --esc-fondo: #efe5d3;
+  --esc-tinta: var(--tinta);
+  --esc-suave: var(--tinta-2);
+  --esc-tenue: #8a7d6c;
+  --esc-linea: rgba(31, 26, 23, .13);
+  --esc-tarjeta: linear-gradient(160deg, #fffdf8, #faf4e8);
+  --esc-hover: linear-gradient(160deg, #fffdf8, #f4e9d4);
+  --esc-acento: var(--vino);
+}
+[data-tema="oscuro"] .seccion--oscura { --esc-fondo: #100c0b; }
+
 .seccion--oscura::before {
-  content: ""; position: absolute; inset: 0;
+  content: ""; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(60% 60% at 80% 0%, rgba(200,150,60,.13), transparent 65%),
               radial-gradient(50% 50% at 0% 100%, rgba(122,27,54,.35), transparent 70%);
 }
+[data-tema="claro"] .seccion--oscura::before {
+  background: radial-gradient(60% 60% at 85% 0%, rgba(168,132,47,.14), transparent 65%),
+              radial-gradient(55% 55% at 0% 100%, rgba(122,27,54,.07), transparent 70%);
+}
 .seccion--oscura .seccion__cab { position: relative; margin-left: auto; margin-right: auto; max-width: var(--max); }
-.seccion--oscura .kicker { color: var(--oro-2); }
-.seccion--oscura .titulo { color: #f7eddc; }
-.seccion--oscura .titulo em { color: var(--oro-2); }
-.seccion--oscura .entrada { color: #cbbcab; }
+.seccion--oscura .kicker { color: var(--esc-acento); }
+.seccion--oscura .titulo { color: var(--esc-tinta); }
+.seccion--oscura .titulo em { color: var(--esc-acento); }
+.seccion--oscura .entrada { color: var(--esc-suave); }
 
 .escuela {
   position: relative; max-width: var(--max); margin: 0 auto;
@@ -574,19 +599,24 @@ body.reunion .agregar { opacity: 1; pointer-events: auto; }
 }
 .clase {
   position: relative; padding: 22px 20px 20px; border-radius: 18px;
-  border: 1px solid rgba(240,225,200,.14);
-  background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+  border: 1px solid var(--esc-linea);
+  background: var(--esc-tarjeta);
   transition: transform .45s var(--curva), border-color .45s, background .45s;
 }
-.clase:hover { transform: translateY(-4px); border-color: rgba(201,168,92,.55); background: linear-gradient(160deg, rgba(201,168,92,.1), rgba(255,255,255,.02)); }
+.clase:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--esc-acento) 70%, transparent);
+  background: var(--esc-hover);
+}
 .clase__n {
   font-family: var(--serif); font-size: 34px; font-weight: 300; line-height: 1;
-  color: rgba(201,168,92,.45); letter-spacing: -.04em;
+  color: color-mix(in srgb, var(--esc-acento) 70%, transparent);
+  letter-spacing: -.04em;
 }
-.clase__fecha { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--oro-2); margin-top: 10px; }
-.clase__tema { font-family: var(--serif); font-size: 17px; font-weight: 600; margin-top: 6px; line-height: 1.2; letter-spacing: -.01em; }
-.clase__det { font-size: 12.5px; color: #c6b7a5; margin-top: 8px; line-height: 1.5; }
-.clase__resp { font-size: 10.5px; color: #9d9081; margin-top: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.clase__fecha { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--esc-acento); margin-top: 10px; }
+.clase__tema { font-family: var(--serif); font-size: 17px; font-weight: 600; margin-top: 6px; line-height: 1.2; letter-spacing: -.01em; color: var(--esc-tinta); }
+.clase__det { font-size: 12.5px; color: var(--esc-suave); margin-top: 8px; line-height: 1.5; }
+.clase__resp { font-size: 11px; color: var(--esc-suave); margin-top: 12px; letter-spacing: .04em; text-transform: uppercase; }
 
 /* ---------- 11. Economía ---------- */
 .economia { border: 1px solid var(--linea-2); border-radius: 18px; overflow: hidden; }
