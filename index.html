@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=15">
+<link rel="stylesheet" href="assets/styles.css?v=16">
 </head>
 <body>
 
@@ -230,7 +230,6 @@
     <div class="hitos" id="hitosLista"></div>
   </section>
 
-
   <!-- ───────────────────────── CRITERIOS ───────────────────────── -->
   <section class="seccion" id="criterios">
     <header class="seccion__cab">
@@ -437,56 +436,11 @@
     <button class="btn btn--mini" id="btnDeshacer" title="Deshacer el último cambio">Deshacer</button>
     <button class="btn btn--mini" id="btnVerCambios">Acta</button>
     <button class="btn btn--mini btn--solido" id="btnGuardarReunion" title="Guarda el acta en un archivo, sin preguntar nada">Guardar</button>
-    <button class="btn btn--mini" id="btnPublicar" title="Sube el acta al repositorio para que se rehagan los PDF">Publicar…</button>
   </div>
 </div>
 
-<!-- ───────────────────────── PANEL DE PUBLICACIÓN ───────────────────────── -->
-<dialog class="modal modal--ancho" id="modalPublicar">
-  <form method="dialog" class="modal__caja">
-    <header class="modal__cab">
-      <h3>Publicar los cambios</h3>
-      <button type="button" class="cerrar" data-cerrar-modal aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-    </header>
-    <div class="modal__cuerpo" id="pubCuerpo">
-      <p class="aviso">
-        <b>Esto no es para guardar.</b> Guardar ya lo hace el botón <b>Guardar</b>, sin preguntar nada.
-        Publicar solo sirve para dejar el acta en <code>data/cambios.json</code> del repositorio, de donde
-        Hermes la lee para rehacer el PDF imprimible.
-      </p>
-      <div class="campo campo--ancho">
-        <label for="p_token">Token de GitHub <span class="ayuda">(solo permiso Contents: write sobre este repositorio)</span></label>
-        <input id="p_token" type="password" autocomplete="off" placeholder="github_pat_…">
-      </div>
-      <div class="campo">
-        <label for="p_owner">Usuario</label>
-        <input id="p_owner" value="mesaumadridg-art">
-      </div>
-      <div class="campo">
-        <label for="p_repo">Repositorio</label>
-        <input id="p_repo" value="calendario-acts-2027">
-      </div>
-      <div class="campo">
-        <label for="p_rama">Rama</label>
-        <input id="p_rama" value="main">
-      </div>
-      <div class="campo">
-        <label for="p_autor">Quién anota</label>
-        <input id="p_autor" placeholder="Tu nombre">
-      </div>
-      <p class="nota-mini" id="pubEstado"></p>
-    </div>
-    <footer class="modal__pie">
-      <button type="button" class="btn btn--fantasma" id="btnDescargar2">Descargar en su lugar</button>
-      <span class="modal__espacio"></span>
-      <button type="button" class="btn btn--fantasma" data-cerrar-modal>Cerrar</button>
-      <button type="button" class="btn btn--solido" id="btnHacerPublicar">Publicar ahora</button>
-    </footer>
-  </form>
-</dialog>
-
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
-<script type="module" src="assets/app.js?v=20"></script>
+<script type="module" src="assets/app.js?v=22"></script>
 </body>
 </html>

@@ -792,7 +792,6 @@ function pintarBarra() {
   const ver = ESTADO.reunion || n > 0;
   barra.hidden = !ver;
   barra.classList.toggle("visible", ver);
-  $("#btnPublicar").classList.toggle("btn--apagado", n === 0);
   $("#btnDeshacer").disabled = ESTADO.historial.length === 0;
   pintarGuardado();
 }
@@ -1014,13 +1013,20 @@ function verActa() {
       <label for="autorActa">Quién anota</label>
       <input id="autorActa" value="${esc(ESTADO.autor || "")}" placeholder="Equipo Facilitador">
     </div>
-    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-      <button class="btn btn--solido" id="btnGuardarActa">Guardar ahora</button>
-      <button class="btn" id="btnElegirCarpeta">Guardar siempre en una carpeta…</button>
-      <button class="btn btn--fantasma" data-descargar="md">Acta en Markdown</button>
+    <p class="nota-mini" style="margin-top:14px">${CARPETA
+      ? `Carpeta: <b>${esc(CARPETA.name)}</b>. El acta se escribe ahí cada vez que guardas, y Hermes la lee de ahí.`
+      : "Carpeta: sin elegir. «Guardar acta» la descarga en Descargas (.json). Si eliges una carpeta, se escribe sola ahí y Hermes la recoge."}</p>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn--solido" id="btnGuardarActa">Guardar acta</button>
+      <button class="btn" id="btnElegirCarpeta">Elegir carpeta…</button>
+      <button class="btn btn--fantasma" id="btnCopiarActa">Copiar</button>
     </div>`);
   $("#btnGuardarActa").addEventListener("click", () => guardarReunion());
   $("#btnElegirCarpeta").addEventListener("click", elegirCarpeta);
+  $("#btnCopiarActa").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(actaMarkdown()); toast("Acta copiada", "ok"); }
+    catch { toast("El navegador no dejó copiar; usa Guardar", "warn"); }
+  });
   $("#autorActa").addEventListener("change", (ev) => {
     ESTADO.autor = ev.target.value.trim();
     guardarLocal();
@@ -1038,63 +1044,6 @@ function descargar(tipo = "json") {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   toast("Archivo descargado", "ok");
-}
-
-/* ------------------------------------------------------------------ publicar */
-
-const b64 = (txt) => {
-  const bytes = new TextEncoder().encode(txt);
-  let bin = "";
-  bytes.forEach((b) => (bin += String.fromCharCode(b)));
-  return btoa(bin);
-};
-
-async function publicar() {
-  const token = $("#p_token").value.trim();
-  const owner = $("#p_owner").value.trim();
-  const repo = $("#p_repo").value.trim();
-  const rama = $("#p_rama").value.trim() || "main";
-  ESTADO.autor = $("#p_autor").value.trim() || ESTADO.autor;
-  const estado = $("#pubEstado");
-
-  if (!token) { estado.textContent = "Falta el token de GitHub."; return; }
-  if (!ESTADO.autor) { estado.textContent = "Escribe tu nombre para que quede en el acta."; return; }
-  guardarLocal();
-
-  const archivos = [
-    ["data/cambios.json", JSON.stringify(cambiosJSON(), null, 1)],
-    ["data/acta.md", actaMarkdown()],
-  ];
-
-  try {
-    estado.textContent = "Publicando…";
-    for (const [ruta, texto] of archivos) {
-      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${ruta}`;
-      let sha;
-      const r = await fetch(`${url}?ref=${rama}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
-      });
-      if (r.ok) sha = (await r.json()).sha;
-      const put = await fetch(url, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Acta de la reunión · ${new Date().toLocaleDateString("es-HN")}${ESTADO.autor ? ` (${ESTADO.autor})` : ""}`,
-          content: b64(texto),
-          branch: rama,
-          ...(sha ? { sha } : {}),
-        }),
-      });
-      if (!put.ok) throw new Error(`${ruta}: ${put.status} ${(await put.json()).message || ""}`);
-    }
-    localStorage.setItem("acts2027:token", token);
-    estado.textContent = "Publicado. GitHub Pages tarda un minuto en actualizarse.";
-    toast("Cambios publicados en GitHub", "ok");
-    $("#modalPublicar").close();
-  } catch (e) {
-    estado.textContent = `No se pudo publicar: ${e.message}`;
-    toast("Error al publicar", "mal");
-  }
 }
 
 /* ------------------------------------------------------------------ UI */
@@ -1206,7 +1155,7 @@ function enganchar() {
     guardarLocal();
     pintarBarra();
     toast(ESTADO.reunion
-      ? "Modo reunión: toca una actividad para editarla. Se guarda solo."
+      ? "Modo reunión: toca una actividad para editarla."
       : "Modo lectura");
   });
 
@@ -1226,18 +1175,6 @@ function enganchar() {
   $("#btnDeshacer").addEventListener("click", deshacer);
   $("#btnVerCambios").addEventListener("click", verActa);
   $("#btnGuardarReunion").addEventListener("click", () => guardarReunion());
-  $("#btnDescargar2").addEventListener("click", () => descargar("json"));
-  $("#btnPublicar").addEventListener("click", () => {
-    if (contarCambios() === 0) {
-      toast("Todavía no hay cambios que publicar");
-      return;
-    }
-    $("#p_token").value = localStorage.getItem("acts2027:token") || "";
-    $("#p_autor").value = ESTADO.autor || "";
-    $("#pubEstado").textContent = "";
-    $("#modalPublicar").showModal();
-  });
-  $("#btnHacerPublicar").addEventListener("click", publicar);
 
   // cerrar modales
   document.addEventListener("click", (ev) => {
