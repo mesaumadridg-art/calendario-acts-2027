@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=13">
+<link rel="stylesheet" href="assets/styles.css?v=15">
 </head>
 <body>
 
@@ -429,14 +429,15 @@
 <div class="cambios" id="cambiosBarra" hidden>
   <div class="cambios__info">
     <b id="cambiosN">0</b>
-    <span id="cambiosTxt">cambios sin publicar</span>
+    <span id="cambiosTxt">cambios</span>
     <i id="cambiosAutor"></i>
+    <span class="cambios__estado" id="guardadoTxt">· sin guardar</span>
   </div>
   <div class="cambios__acciones">
     <button class="btn btn--mini" id="btnDeshacer" title="Deshacer el último cambio">Deshacer</button>
-    <button class="btn btn--mini" id="btnVerCambios">Ver acta</button>
-    <button class="btn btn--mini" id="btnDescargar">Descargar</button>
-    <button class="btn btn--mini btn--solido" id="btnPublicar">Publicar en GitHub</button>
+    <button class="btn btn--mini" id="btnVerCambios">Acta</button>
+    <button class="btn btn--mini btn--solido" id="btnGuardarReunion" title="Guarda el acta en un archivo, sin preguntar nada">Guardar</button>
+    <button class="btn btn--mini" id="btnPublicar" title="Sube el acta al repositorio para que se rehagan los PDF">Publicar…</button>
   </div>
 </div>
 
@@ -449,8 +450,9 @@
     </header>
     <div class="modal__cuerpo" id="pubCuerpo">
       <p class="aviso">
-        Los cambios se guardan en <code>data/cambios.json</code> dentro del repositorio. Desde ahí Hermes
-        los lee y actualiza el PDF imprimible. También puedes descargar el archivo y guardarlo a mano.
+        <b>Esto no es para guardar.</b> Guardar ya lo hace el botón <b>Guardar</b>, sin preguntar nada.
+        Publicar solo sirve para dejar el acta en <code>data/cambios.json</code> del repositorio, de donde
+        Hermes la lee para rehacer el PDF imprimible.
       </p>
       <div class="campo campo--ancho">
         <label for="p_token">Token de GitHub <span class="ayuda">(solo permiso Contents: write sobre este repositorio)</span></label>
@@ -485,6 +487,6 @@
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
-<script type="module" src="assets/app.js?v=10"></script>
+<script type="module" src="assets/app.js?v=20"></script>
 </body>
 </html>

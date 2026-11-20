@@ -27,7 +27,13 @@ const ESTADO = {
   historial: [],
   autor: "",
   tema: "",
+  guardado: "",        // ISO de la última vez que se escribió el archivo
+  guardadoVia: "",     // "carpeta" | "descarga"
 };
+
+let CARPETA = null;      // carpeta elegida una vez (File System Access)
+let EN_GUARDADO = false;
+let T_SAVE = null;
 
 /* ------------------------------------------------------------------ datos */
 
@@ -729,6 +735,7 @@ function guardarEditor(ev) {
     toast("Actividad agregada", "ok");
   }
   guardarLocal();
+  marcarSucio();
   aplicarCambios();
   refrescar();
   $("#modal").close();
@@ -747,6 +754,7 @@ function borrarEvento(id) {
   }
   ESTADO.historial.push({ accion: "borrar", id, antes: e, despues: null, motivo: "Borrada en modo reunión", autor: ESTADO.autor || "Sin nombre", fecha: new Date().toISOString() });
   guardarLocal();
+  marcarSucio();
   aplicarCambios();
   refrescar();
   toast("Actividad borrada");
@@ -759,6 +767,7 @@ function deshacer() {
   if (ultimo.accion === "crear") ESTADO.cambios.creados = ESTADO.cambios.creados.filter((x) => x.id !== ultimo.id);
   if (ultimo.accion === "borrar") ESTADO.cambios.borrados = ESTADO.cambios.borrados.filter((x) => x !== ultimo.id);
   guardarLocal();
+  marcarSucio();
   aplicarCambios();
   refrescar();
   toast("Deshecho");
@@ -778,10 +787,157 @@ function pintarBarra() {
   const n = contarCambios();
   const barra = $("#cambiosBarra");
   $("#cambiosN").textContent = n;
-  $("#cambiosTxt").textContent = n === 1 ? "cambio sin publicar" : "cambios sin publicar";
+  $("#cambiosTxt").textContent = n === 1 ? "cambio" : "cambios";
   $("#cambiosAutor").textContent = ESTADO.autor ? `· ${ESTADO.autor}` : "";
-  barra.hidden = n === 0;
-  barra.classList.toggle("visible", n > 0);
+  const ver = ESTADO.reunion || n > 0;
+  barra.hidden = !ver;
+  barra.classList.toggle("visible", ver);
+  $("#btnPublicar").classList.toggle("btn--apagado", n === 0);
+  $("#btnDeshacer").disabled = ESTADO.historial.length === 0;
+  pintarGuardado();
+}
+
+function pintarGuardado() {
+  const el = $("#guardadoTxt");
+  if (!el) return;
+  el.classList.remove("cambios__estado--sucio");
+  if (!ESTADO.guardado) {
+    const hay = ESTADO.historial.length > 0;
+    el.textContent = hay ? "Sin guardar" : "Sin cambios";
+    el.classList.toggle("cambios__estado--sucio", hay);
+    el.classList.remove("cambios__estado--listo");
+    return;
+  }
+  const d = new Date(ESTADO.guardado);
+  const hh = d.toLocaleTimeString("es-HN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  el.textContent = `Guardado ${hh}`;
+  el.classList.add("cambios__estado--listo");
+}
+
+function marcarSucio() {
+  ESTADO.guardado = "";
+  pintarGuardado();
+  if (CARPETA) {
+    clearTimeout(T_SAVE);
+    T_SAVE = setTimeout(() => guardarReunion({ silencio: true }), 2500);
+  }
+}
+
+/* --------------------------------------------------- guardar (sin pedir nada) */
+
+const IDB_N = "acts2027-fs";
+const IDB_S = "carpetas";
+
+function idb() {
+  return new Promise((ok, mal) => {
+    const r = indexedDB.open(IDB_N, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore(IDB_S);
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => mal(r.error);
+  });
+}
+
+async function leerCarpeta() {
+  try {
+    const db = await idb();
+    const h = await new Promise((ok) => {
+      const t = db.transaction(IDB_S, "readonly").objectStore(IDB_S).get("actual");
+      t.onsuccess = () => ok(t.result || null);
+      t.onerror = () => ok(null);
+    });
+    if (!h) return null;
+    const p = await h.queryPermission({ mode: "readwrite" });
+    return p === "denied" ? null : h;
+  } catch { return null; }
+}
+
+async function recordarCarpeta(h) {
+  try {
+    const db = await idb();
+    await new Promise((ok) => {
+      const t = db.transaction(IDB_S, "readwrite");
+      t.objectStore(IDB_S).put(h, "actual");
+      t.oncomplete = ok; t.onerror = ok;
+    });
+  } catch { /* sin memoria de carpeta, se descarga */ }
+}
+
+async function elegirCarpeta() {
+  if (!window.showDirectoryPicker) {
+    toast("Este navegador no deja elegir carpeta: el acta se descarga", "warn");
+    return;
+  }
+  try {
+    const h = await window.showDirectoryPicker({ id: "acts2027", mode: "readwrite" });
+    CARPETA = h;
+    await recordarCarpeta(h);
+    await guardarReunion({ silencio: true });
+    toast(`Listo: el acta se guarda sola en «${h.name}»`, "ok");
+  } catch (e) {
+    if (e.name !== "AbortError") toast("No se pudo usar esa carpeta", "warn");
+  }
+}
+
+async function escribirEnCarpeta(h, textos) {
+  let p = await h.queryPermission({ mode: "readwrite" });
+  if (p !== "granted") p = await h.requestPermission({ mode: "readwrite" });
+  if (p !== "granted") throw new Error("sin permiso");
+  for (const [nombre, txt] of Object.entries(textos)) {
+    const fh = await h.getFileHandle(nombre, { create: true });
+    const w = await fh.createWritable();
+    await w.write(txt);
+    await w.close();
+  }
+}
+
+function sello() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+async function guardarReunion(opts = {}) {
+  const silencio = opts.silencio === true;
+  EN_GUARDADO = true;
+  guardarLocal();
+  EN_GUARDADO = false;
+
+  const json = JSON.stringify({ ...cambiosJSON(), acta: actaMarkdown() }, null, 1);
+  const md = actaMarkdown();
+  let via = "";
+
+  if (CARPETA) {
+    try {
+      await escribirEnCarpeta(CARPETA, { "reunion_acta.json": json, "reunion_acta.md": md });
+      via = "carpeta";
+    } catch {
+      CARPETA = null;
+    }
+  }
+
+  if (!via) {
+    const nombre = `ACTS_2027_reunion_${sello()}.json`;
+    const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    via = "descarga";
+  }
+
+  ESTADO.guardado = new Date().toISOString();
+  ESTADO.guardadoVia = via;
+  EN_GUARDADO = true;
+  guardarLocal();
+  EN_GUARDADO = false;
+  pintarGuardado();
+
+  if (!silencio) {
+    toast(via === "carpeta"
+      ? `Guardado en «${CARPETA.name}»`
+      : "Guardado en tu carpeta de descargas", "ok");
+  }
 }
 
 /* ------------------------------------------------------------------ acta */
@@ -836,7 +992,7 @@ function cambiosJSON() {
   return {
     version: 1,
     actualizado: new Date().toISOString(),
-    autor: ESTADO.autor || "Sin nombre",
+    autor: ESTADO.autor || "Equipo Facilitador",
     base: "calendario-acts-2027",
     resumen: { totalEventos: ESTADO.eventos.length, cambios: ESTADO.historial.length },
     eventos: ESTADO.eventos.map((e) => ({
@@ -854,10 +1010,22 @@ function verActa() {
   abrirCajon(`<p class="manual__fuente">Acta de la reunión</p>
     <h2 class="manual__tema" id="cajonTitulo">${ESTADO.historial.length} cambios registrados</h2>
     <div class="manual__cita" style="font-family:var(--sans);font-size:12.5px;white-space:pre-wrap;max-height:52vh;overflow:auto">${esc(md.slice(0, 6000))}</div>
-    <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap">
-      <button class="btn btn--solido" data-descargar="md">Descargar acta</button>
-      <button class="btn" data-descargar="json">Descargar JSON</button>
+    <div class="campo" style="margin-top:16px">
+      <label for="autorActa">Quién anota</label>
+      <input id="autorActa" value="${esc(ESTADO.autor || "")}" placeholder="Equipo Facilitador">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn btn--solido" id="btnGuardarActa">Guardar ahora</button>
+      <button class="btn" id="btnElegirCarpeta">Guardar siempre en una carpeta…</button>
+      <button class="btn btn--fantasma" data-descargar="md">Acta en Markdown</button>
     </div>`);
+  $("#btnGuardarActa").addEventListener("click", () => guardarReunion());
+  $("#btnElegirCarpeta").addEventListener("click", elegirCarpeta);
+  $("#autorActa").addEventListener("change", (ev) => {
+    ESTADO.autor = ev.target.value.trim();
+    guardarLocal();
+    pintarBarra();
+  });
 }
 
 function descargar(tipo = "json") {
@@ -1038,14 +1206,8 @@ function enganchar() {
     guardarLocal();
     pintarBarra();
     toast(ESTADO.reunion
-      ? "Modo reunión: puedes editar, borrar y agregar. Todo queda en el acta."
+      ? "Modo reunión: toca una actividad para editarla. Se guarda solo."
       : "Modo lectura");
-    if (ESTADO.reunion && !ESTADO.autor) {
-      setTimeout(() => {
-        $("#p_autor").value = "";
-        $("#modalPublicar").showModal();
-      }, 500);
-    }
   });
 
   // modal
@@ -1063,9 +1225,13 @@ function enganchar() {
   // barra de cambios
   $("#btnDeshacer").addEventListener("click", deshacer);
   $("#btnVerCambios").addEventListener("click", verActa);
-  $("#btnDescargar").addEventListener("click", () => descargar("json"));
+  $("#btnGuardarReunion").addEventListener("click", () => guardarReunion());
   $("#btnDescargar2").addEventListener("click", () => descargar("json"));
   $("#btnPublicar").addEventListener("click", () => {
+    if (contarCambios() === 0) {
+      toast("Todavía no hay cambios que publicar");
+      return;
+    }
     $("#p_token").value = localStorage.getItem("acts2027:token") || "";
     $("#p_autor").value = ESTADO.autor || "";
     $("#pubEstado").textContent = "";
@@ -1184,6 +1350,7 @@ function abrirJunta(ciclo, n) {
   pintarBloqueos();
   pintarHitos();
   enganchar();
+  CARPETA = await leerCarpeta();
   document.body.classList.toggle("reunion", ESTADO.reunion);
   $("#btnReunion").setAttribute("aria-pressed", String(ESTADO.reunion));
   pintarBarra();
