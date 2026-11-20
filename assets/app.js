@@ -689,6 +689,10 @@ function abrirEditor(id, fechaPorDefecto, mes) {
   setTimeout(() => $("#f_actividad").focus(), 60);
 }
 
+const CAMPOS_EDITABLES = ["actividad", "fecha", "hora", "tipo", "responsable", "lugar", "nota"];
+const soloCampos = (o) => Object.fromEntries(CAMPOS_EDITABLES.map((k) => [k, o?.[k] ?? ""]));
+const diferencias = (a, b) => CAMPOS_EDITABLES.filter((k) => String(a?.[k] ?? "") !== String(b?.[k] ?? ""));
+
 function guardarEditor(ev) {
   ev.preventDefault();
   const f = ev.target;
@@ -705,7 +709,7 @@ function guardarEditor(ev) {
   if (!ESTADO.datos.tipos[datos.tipo]) datos.tipo = "EF";
   const motivo = $("#f_motivo").value.trim();
   const decision = $("#f_decision").value.trim();
-  const autor = ESTADO.autor || "Sin nombre";
+  const autor = ESTADO.autor || "Equipo Facilitador";
   const avisos = diagnostico(datos.fecha, datos.hora, datos.tipo, EDITANDO)
     .filter((a) => a.n !== "bajo").map((a) => a.t);
   if (avisos.length && !confirm("La fecha tiene avisos:\n\n· " + avisos.join("\n· ") +
@@ -714,12 +718,36 @@ function guardarEditor(ev) {
   const base = ESTADO.datos.eventos.find((x) => x.id === EDITANDO);
   if (EDITANDO && base) {
     const antes = { ...base, ...(ESTADO.cambios.editados[EDITANDO] || {}) };
-    ESTADO.cambios.editados[EDITANDO] = datos;
+    const cambio = diferencias(antes, datos);
+
+    if (!cambio.length && !decision && !motivo) {
+      toast("No cambiaste nada");
+      $("#modal").close();
+      return;
+    }
+
+    if (cambio.length) {
+      ESTADO.cambios.editados[EDITANDO] = datos;
+    } else {
+      // sin cambios reales: no se ensucia la lista de ediciones
+      const previo = ESTADO.cambios.editados[EDITANDO];
+      if (previo && !diferencias(base, previo).length) delete ESTADO.cambios.editados[EDITANDO];
+    }
+
     if (decision) ESTADO.decisiones[EDITANDO] = { texto: decision, autor, fecha: new Date().toISOString(), avisos };
     else delete ESTADO.decisiones[EDITANDO];
-    ESTADO.historial.push({ accion: "editar", id: EDITANDO, antes, despues: datos, motivo, decision, avisos,
-      autor, fecha: new Date().toISOString() });
-    toast(decision ? "Cambio y acuerdo guardados" : "Cambio guardado");
+
+    ESTADO.historial.push({
+      accion: cambio.length ? "editar" : "acuerdo",
+      id: EDITANDO,
+      antes: soloCampos(antes),
+      despues: soloCampos(datos),
+      campos: cambio,
+      motivo, decision, avisos, autor, fecha: new Date().toISOString(),
+    });
+    toast(cambio.length
+      ? (decision ? "Cambio y acuerdo guardados" : "Cambio guardado")
+      : (decision ? "Acuerdo guardado, sin cambios en la actividad" : "Nota guardada, sin cambios en la actividad"));
   } else {
     const id = `nuevo-${Date.now()}`;
     const nuevo = {
@@ -752,7 +780,7 @@ function borrarEvento(id) {
     ESTADO.cambios.borrados.push(id);
     delete ESTADO.cambios.editados[id];
   }
-  ESTADO.historial.push({ accion: "borrar", id, antes: e, despues: null, motivo: "Borrada en modo reunión", autor: ESTADO.autor || "Sin nombre", fecha: new Date().toISOString() });
+  ESTADO.historial.push({ accion: "borrar", id, antes: e, despues: null, motivo: "Borrada en modo reunión", autor: ESTADO.autor || "Equipo Facilitador", fecha: new Date().toISOString() });
   guardarLocal();
   marcarSucio();
   aplicarCambios();
@@ -779,6 +807,7 @@ function contarCambios() {
     ...ESTADO.cambios.creados.map((e) => e.id),
     ...ESTADO.cambios.borrados,
     ...Object.keys(ESTADO.decisiones),
+    ...ESTADO.historial.filter((h) => h.accion === "acuerdo").map((h) => h.id),
   ]);
   return ids.size;
 }
@@ -974,13 +1003,24 @@ function horaDe(iso) {
 }
 
 function filaCambio(h) {
-  const t = h.accion === "crear" ? "Agregada" : h.accion === "borrar" ? "Borrada" : "Modificada";
   const f = h.despues || h.antes || {};
-  const detalle = h.accion === "editar"
-    ? Object.keys(h.despues).filter((k) => JSON.stringify(h.antes?.[k]) !== JSON.stringify(h.despues[k]))
-        .map((k) => `\`${k}\`: ${JSON.stringify(h.antes?.[k] ?? "")} → ${JSON.stringify(h.despues[k])}`).join("; ")
-    : `${f.tipo || ""} · ${f.fecha ? fmtLargo(f.fecha) : "sin fecha"} · ${f.responsable || "sin responsable"}`;
-  return `| ${horaDe(h.fecha)} | ${t} | ${f.actividad || "(sin nombre)"} | ${detalle} | ${h.motivo || ""} | ${h.autor || ""} |`;
+  const etiqueta = { crear: "Agregada", borrar: "Borrada", acuerdo: "Sin cambios" }[h.accion] || "Modificada";
+
+  let detalle;
+  if (h.accion === "editar") {
+    const campos = (h.campos && h.campos.length)
+      ? h.campos
+      : CAMPOS_EDITABLES.filter((k) => JSON.stringify(h.antes?.[k]) !== JSON.stringify(h.despues?.[k]));
+    detalle = campos.length
+      ? campos.map((k) => `\`${k}\`: ${JSON.stringify(h.antes?.[k] ?? "")} → ${JSON.stringify(h.despues?.[k] ?? "")}`).join("; ")
+      : "—";
+  } else if (h.accion === "acuerdo") {
+    detalle = h.decision ? "solo acuerdo del EF" : "solo nota";
+  } else {
+    detalle = `${f.tipo || ""} · ${f.fecha ? fmtLargo(f.fecha) : "sin fecha"} · ${f.responsable || "sin responsable"}`;
+  }
+
+  return `| ${horaDe(h.fecha)} | ${etiqueta} | ${f.actividad || "(sin nombre)"} | ${detalle} | ${h.motivo || ""} | ${h.autor || ""} |`;
 }
 
 function tablaCambios(lista) {
@@ -1011,7 +1051,7 @@ function actaMarkdown(dia = "") {
   return `${titulo}
 
 **Parroquia El Salvador del Mundo · Equipo Facilitador de Retiros ACTS**
-${ESTADO.autor ? `**Quien anota:** ${ESTADO.autor}\n` : ""}${dia ? "" : `Generada: ${new Date().toLocaleString("es-HN")}\n`}Actividades después de los cambios: **${total}** · Cambios registrados${dia ? " en esta reunión" : ""}: **${hist.length}**
+${ESTADO.autor ? `**Quien anota:** ${ESTADO.autor}\n` : ""}${dia ? "" : `Generada: ${new Date().toLocaleString("es-HN")}\n`}Actividades después de los cambios: **${total}** · Registros en el acta${dia ? " de esta reunión" : ""}: **${hist.length}**
 
 ## ${dia ? "Cambios de esta reunión" : "Cambios por reunión"}
 
