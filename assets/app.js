@@ -1061,7 +1061,7 @@ async function verActa() {
   const dias = new Set(ESTADO.historial.map((h) => diaISO(h.fecha)));
   const plural = dias.size === 1 ? "reunión" : "reuniones";
   abrirCajon(`<p class="manual__fuente">Acta de la reunión</p>
-    <h2 class="manual__tema" id="cajonTitulo">${ESTADO.historial.length} cambios en ${dias.size} ${plural}</h2>
+    <h2 class="manual__tema" id="cajonTitulo">${ESTADO.historial.length ? `${ESTADO.historial.length} cambios en ${dias.size} ${plural}` : "Todavía sin cambios"}</h2>
     <p class="nota-mini">Hoy es ${fmtFechaCompleta(hoy)}. Al guardar se escribe <b>reuniones/${hoy}.md</b> con lo de hoy y, aparte,
       el acumulado <b>reunion_acta.md</b> con todo.</p>
     <div class="manual__cita" style="font-family:var(--sans);font-size:12.5px;white-space:pre-wrap;max-height:46vh;overflow:auto">${esc(md.slice(0, 6000))}</div>
