@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendario 2027 · Equipo Facilitador ACTS</title>
+<meta name="description" content="Calendario 2027 del Equipo Facilitador de Retiros ACTS de la Parroquia El Salvador del Mundo. Juntas, formación, retiros, economía y fechas bloqueadas.">
+<meta name="theme-color" content="#7a1b36">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%237a1b36'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='36' fill='%23f3e6c8' text-anchor='middle'%3E27%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<div class="grano" aria-hidden="true"></div>
+
+<a class="saltar" href="#agenda">Saltar a la agenda</a>
+
+<header class="barra" id="barra">
+  <div class="barra__progreso" id="progreso"></div>
+  <a class="marca" href="#inicio" aria-label="Ir al inicio">
+    <span class="marca__sello">27</span>
+    <span class="marca__texto"><b>Calendario 2027</b><i>Equipo Facilitador · ACTS</i></span>
+  </a>
+
+  <nav class="meses-nav" id="mesesNav" aria-label="Meses"></nav>
+
+  <div class="barra__tools">
+    <button class="icono" id="btnBuscar" aria-label="Buscar" title="Buscar (/)">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+    </button>
+    <button class="icono" id="btnTema" aria-label="Cambiar tema" title="Claro / oscuro">
+      <svg viewBox="0 0 24 24"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+    <button class="btn-reunion" id="btnReunion">
+      <span class="punto"></span><span class="btn-reunion__txt">Modo reunión</span>
+    </button>
+  </div>
+</header>
+
+<main id="contenido">
+
+  <!-- ───────────────────────── HERO ───────────────────────── -->
+  <section class="hero" id="inicio">
+    <div class="hero__fondo" aria-hidden="true">
+      <span class="blob blob--1"></span>
+      <span class="blob blob--2"></span>
+      <span class="blob blob--3"></span>
+      <span class="hero__arco"></span>
+    </div>
+
+    <div class="hero__interior">
+      <p class="hero__eyebrow"><span class="linea"></span> Parroquia El Salvador del Mundo · Tegucigalpa</p>
+
+      <h1 class="hero__titulo">
+        <span class="palabra" style="--i:0">Calendario</span>
+        <span class="palabra hero__anio" style="--i:1">2027</span>
+      </h1>
+
+      <p class="hero__bajada">
+        Un año de servicio en orden: las juntas del Equipo Facilitador, los dos ciclos de formación,
+        los retiros de varones y mujeres, la escuela de servidores y la plata para sostenerlo todo.
+      </p>
+
+      <div class="hero__cifras" id="cifras">
+        <div class="cifra"><b data-contar="75">0</b><span>actividades</span></div>
+        <div class="cifra"><b data-contar="26">0</b><span>juntas de formación</span></div>
+        <div class="cifra"><b data-contar="2">0</b><span>retiros</span></div>
+        <div class="cifra"><b data-contar="13">0</b><span>actividades económicas</span></div>
+      </div>
+
+      <div class="hero__retiros" id="heroRetiros"></div>
+
+      <div class="hero__marcas">
+        <div class="marcas__placa">
+          <img src="assets/img/parroquia.png" alt="Parroquia El Salvador del Mundo" class="logo-parroquia">
+          <span class="marcas__sep"></span>
+          <img src="assets/img/acts.png" alt="Retiros ACTS" class="logo-acts">
+        </div>
+        <p class="marcas__pie">Arquidiócesis de Tegucigalpa · Retiros ACTS</p>
+      </div>
+
+      <div class="hero__pie">
+        <span class="hero__fecha" id="heroFecha">Propuesta para la reunión del 14 de diciembre de 2026</span>
+        <a class="desliza" href="#mapa"><span></span><svg viewBox="0 0 24 24"><path d="M12 4v16M6 14l6 6 6-6"/></svg>Explorar el año</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── MAPA ───────────────────────── -->
+  <section class="seccion" id="mapa">
+    <header class="seccion__cab">
+      <p class="kicker">01 · El año de un vistazo</p>
+      <h2 class="titulo">Doce meses, <em>un solo propósito</em></h2>
+      <p class="entrada">
+        Cada punto es una cita del equipo. Los meses en vino cargan junta del Equipo Facilitador;
+        los azules y verdes, formación; el rojo, retiro. Pasa el cursor y haz clic para bajar al mes.
+      </p>
+      <ul class="leyenda" id="leyenda"></ul>
+    </header>
+
+    <div class="mapa" id="mapaAnio"></div>
+
+    <div class="focos" id="focos"></div>
+  </section>
+
+  <!-- ───────────────────────── AGENDA ───────────────────────── -->
+  <section class="seccion seccion--agenda" id="agenda">
+    <header class="seccion__cab seccion__cab--fija">
+      <p class="kicker">02 · La agenda</p>
+      <h2 class="titulo">Mes por mes, <em>sin sorpresas</em></h2>
+      <p class="entrada">
+        Filtra por equipo, tipo o responsable. En modo reunión puedes mover fechas, cambiar responsables
+        y dejar constancia de cada cambio para llevarlo al documento impreso.
+      </p>
+
+      <div class="filtros" id="filtros">
+        <div class="buscador">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+          <input id="buscar" type="search" placeholder="Buscar actividad, responsable o lugar…" autocomplete="off">
+          <kbd>/</kbd>
+        </div>
+        <div class="chips" id="chipsEquipo" role="group" aria-label="Filtrar por equipo"></div>
+        <div class="chips chips--suaves" id="chipsTipo" role="group" aria-label="Filtrar por tipo"></div>
+        <button class="btn-limpiar" id="btnLimpiar" hidden>Limpiar filtros</button>
+        <span class="cuenta" id="cuenta"></span>
+      </div>
+    </header>
+
+    <div id="meses"></div>
+  </section>
+
+  <!-- ───────────────────────── FORMACIÓN ───────────────────────── -->
+  <section class="seccion" id="formacion">
+    <header class="seccion__cab">
+      <p class="kicker">03 · Formación</p>
+      <h2 class="titulo">Trece juntas, <em>cada quince días</em></h2>
+      <p class="entrada">
+        El Manual pide trece juntas de formación antes de cada retiro. Aquí van cada dos semanas,
+        con el domingo intermedio libre para rectificar o convocar una extraordinaria.
+      </p>
+      <button class="ficha-manual" data-manual="formacion-13">
+        <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
+        Manual · cap. 3, p. 47 · Tabla 3.2
+      </button>
+    </header>
+
+    <div class="ciclos" id="ciclos"></div>
+  </section>
+
+  <!-- ───────────────────────── ESCUELA ───────────────────────── -->
+  <section class="seccion seccion--oscura" id="escuela">
+    <header class="seccion__cab">
+      <p class="kicker">04 · Escuela de servidores</p>
+      <h2 class="titulo">Diez sábados <em>para servir mejor</em></h2>
+      <p class="entrada">
+        Un sábado al mes, de 9:00 a 11:00 a.m., abierto a los servidores de ambos retiros y a los
+        que ya sirvieron. El orden sigue el año litúrgico.
+      </p>
+    </header>
+    <div class="escuela" id="escuelaLista"></div>
+  </section>
+
+  <!-- ───────────────────────── ECONOMÍA ───────────────────────── -->
+  <section class="seccion" id="economia">
+    <header class="seccion__cab">
+      <p class="kicker">05 · Economía</p>
+      <h2 class="titulo">La plata <em>del retiro</em></h2>
+      <p class="entrada">
+        Trece actividades, casi todas en sábado: ningún domingo con junta lleva venta. La meta de cada
+        una la fija el Coordinador Financiero; aquí queda el espacio para anotarla.
+      </p>
+    </header>
+    <div class="economia" id="economiaTabla"></div>
+  </section>
+
+  <!-- ───────────────────────── BLOQUEOS ───────────────────────── -->
+  <section class="seccion seccion--bloqueos" id="bloqueos">
+    <header class="seccion__cab">
+      <p class="kicker">06 · Fechas que mandan</p>
+      <h2 class="titulo">Lo que la parroquia <em>y el país ya tienen</em></h2>
+      <p class="entrada">
+        Semana Santa, la fiesta patronal, la Semana Cívica y la Semana Morazánica no se negocian:
+        el calendario del equipo se acomoda alrededor de ellas.
+      </p>
+      <button class="ficha-manual" data-manual="bloqueos">
+        <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M20 18v3H6.5A2.5 2.5 0 0 1 4 18.5"/></svg>
+        Manual · cap. 2, p. 38 · calendario y miniretiro
+      </button>
+    </header>
+    <div class="bloqueos" id="bloqueosLista"></div>
+  </section>
+
+  <!-- ───────────────────────── HITOS ───────────────────────── -->
+  <section class="seccion" id="hitos">
+    <header class="seccion__cab">
+      <p class="kicker">07 · Hitos y documentos</p>
+      <h2 class="titulo">Papeles que <em>hay que tener</em></h2>
+      <p class="entrada">
+        Lo que se firma, se entrega o se archiva durante el año. Cada uno tiene su mes y su responsable.
+      </p>
+    </header>
+    <div class="hitos" id="hitosLista"></div>
+  </section>
+
+  <footer class="pie">
+    <div class="pie__marca">
+      <div class="pie__logos">
+        <img src="assets/img/parroquia.png" alt="Parroquia El Salvador del Mundo">
+        <img src="assets/img/acts.png" alt="Retiros ACTS">
+      </div>
+      <div>
+        <b>Calendario 2027</b>
+        <p>Equipo Facilitador de Retiros ACTS<br>Parroquia El Salvador del Mundo · Tegucigalpa</p>
+      </div>
+    </div>
+    <div class="pie__nota">
+      <p id="pieNota"></p>
+      <p class="pie__meta" id="pieMeta"></p>
+    </div>
+    <div class="pie__acciones">
+      <a class="btn btn--solido" href="pdf/Calendario_2027_1_Consolidado.pdf" target="_blank" rel="noopener">Abrir el PDF para imprimir</a>
+      <a class="btn" href="https://github.com/mesaumadridg-art/calendario-acts-2027" target="_blank" rel="noopener">Ver el repositorio</a>
+      <a class="btn btn--fantasma" href="data/calendario.json" download>Descargar datos</a>
+    </div>
+  </footer>
+</main>
+
+<!-- ───────────────────────── CAJÓN LATERAL ───────────────────────── -->
+<aside class="cajon" id="cajon" aria-hidden="true" aria-label="Detalle">
+  <div class="cajon__velo" data-cerrar-cajon></div>
+  <div class="cajon__panel" role="dialog" aria-modal="true" aria-labelledby="cajonTitulo">
+    <button class="cerrar" data-cerrar-cajon aria-label="Cerrar">
+      <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="cajon__cuerpo" id="cajonCuerpo"></div>
+  </div>
+</aside>
+
+<!-- ───────────────────────── MODAL ───────────────────────── -->
+<dialog class="modal" id="modal">
+  <form method="dialog" class="modal__caja" id="formEvento">
+    <header class="modal__cab">
+      <h3 id="modalTitulo">Editar actividad</h3>
+      <button type="button" class="cerrar" data-cerrar-modal aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+    </header>
+
+    <div class="modal__cuerpo">
+      <div class="campo campo--ancho">
+        <label for="f_actividad">Actividad</label>
+        <input id="f_actividad" name="actividad" required maxlength="120" placeholder="Ej. Junta EF #5 · Revisión de inscripciones">
+      </div>
+
+      <div class="campo">
+        <label for="f_fecha">Fecha</label>
+        <input id="f_fecha" name="fecha" type="date" required>
+      </div>
+      <div class="campo">
+        <label for="f_hora">Hora</label>
+        <input id="f_hora" name="hora" list="horas" placeholder="10:00 a.m.">
+        <datalist id="horas">
+          <option>7:00 p.m.</option><option>9:00 a.m.</option><option>10:00 a.m.</option>
+          <option>12:00 m.</option><option>2:00 p.m.</option><option>4:00 p.m.</option><option>6:00 p.m.</option>
+        </datalist>
+      </div>
+
+      <div class="campo">
+        <label for="f_tipo">Tipo</label>
+        <select id="f_tipo" name="tipo"></select>
+      </div>
+      <div class="campo">
+        <label for="f_responsable">Responsable</label>
+        <input id="f_responsable" name="responsable" list="responsables" placeholder="Quién responde">
+        <datalist id="responsables"></datalist>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="f_lugar">Lugar</label>
+        <input id="f_lugar" name="lugar" placeholder="Salón parroquial, atrio, casa de retiros…">
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="f_nota">Nota</label>
+        <textarea id="f_nota" name="nota" rows="3" placeholder="Detalle, documento que se entrega, condición…"></textarea>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="f_motivo">Motivo del cambio <span class="ayuda">(queda en el acta)</span></label>
+        <input id="f_motivo" name="motivo" placeholder="Ej. La casa de retiros solo tenía libre esa fecha">
+      </div>
+    </div>
+
+    <footer class="modal__pie">
+      <button type="button" class="btn btn--peligro" id="btnBorrar" hidden>Borrar</button>
+      <span class="modal__espacio"></span>
+      <button type="button" class="btn btn--fantasma" data-cerrar-modal>Cancelar</button>
+      <button class="btn btn--solido" id="btnGuardar" value="guardar">Guardar cambio</button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- ───────────────────────── BARRA DE CAMBIOS ───────────────────────── -->
+<div class="cambios" id="cambiosBarra" hidden>
+  <div class="cambios__info">
+    <b id="cambiosN">0</b>
+    <span id="cambiosTxt">cambios sin publicar</span>
+    <i id="cambiosAutor"></i>
+  </div>
+  <div class="cambios__acciones">
+    <button class="btn btn--mini" id="btnDeshacer" title="Deshacer el último cambio">Deshacer</button>
+    <button class="btn btn--mini" id="btnVerCambios">Ver acta</button>
+    <button class="btn btn--mini" id="btnDescargar">Descargar</button>
+    <button class="btn btn--mini btn--solido" id="btnPublicar">Publicar en GitHub</button>
+  </div>
+</div>
+
+<!-- ───────────────────────── PANEL DE PUBLICACIÓN ───────────────────────── -->
+<dialog class="modal modal--ancho" id="modalPublicar">
+  <form method="dialog" class="modal__caja">
+    <header class="modal__cab">
+      <h3>Publicar los cambios</h3>
+      <button type="button" class="cerrar" data-cerrar-modal aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </header>
+    <div class="modal__cuerpo" id="pubCuerpo">
+      <p class="aviso">
+        Los cambios se guardan en <code>data/cambios.json</code> dentro del repositorio. Desde ahí Hermes
+        los lee y actualiza el PDF imprimible. También puedes descargar el archivo y guardarlo a mano.
+      </p>
+      <div class="campo campo--ancho">
+        <label for="p_token">Token de GitHub <span class="ayuda">(solo permiso Contents: write sobre este repositorio)</span></label>
+        <input id="p_token" type="password" autocomplete="off" placeholder="github_pat_…">
+      </div>
+      <div class="campo">
+        <label for="p_owner">Usuario</label>
+        <input id="p_owner" value="mesaumadridg-art">
+      </div>
+      <div class="campo">
+        <label for="p_repo">Repositorio</label>
+        <input id="p_repo" value="calendario-acts-2027">
+      </div>
+      <div class="campo">
+        <label for="p_rama">Rama</label>
+        <input id="p_rama" value="main">
+      </div>
+      <div class="campo">
+        <label for="p_autor">Quién anota</label>
+        <input id="p_autor" placeholder="Tu nombre">
+      </div>
+      <p class="nota-mini" id="pubEstado"></p>
+    </div>
+    <footer class="modal__pie">
+      <button type="button" class="btn btn--fantasma" id="btnDescargar2">Descargar en su lugar</button>
+      <span class="modal__espacio"></span>
+      <button type="button" class="btn btn--fantasma" data-cerrar-modal>Cerrar</button>
+      <button type="button" class="btn btn--solido" id="btnHacerPublicar">Publicar ahora</button>
+    </footer>
+  </form>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>

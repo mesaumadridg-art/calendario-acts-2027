@@ -1,0 +1,10 @@
+{
+ "version": 1,
+ "actualizado": null,
+ "autor": "",
+ "base": "calendario-acts-2027",
+ "resumen": { "totalEventos": 0, "cambios": 0 },
+ "eventos": [],
+ "cambios": { "creados": [], "editados": {}, "borrados": [] },
+ "historial": []
+}
