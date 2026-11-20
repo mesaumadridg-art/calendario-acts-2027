@@ -222,13 +222,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Cristología: quién es Jesús",
+   "actividad": "Capacitación · La Misa, paso a paso",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "responsable": "Coord. Espiritual + párroco",
    "lugar": "Salón parroquial",
-   "nota": "Quién es Jesús y qué dice de Dios."
+   "nota": "La Misa, paso a paso"
   },
   {
    "id": "forv-2027-02-21-1",
@@ -366,13 +366,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Eclesiología: la Iglesia y el laico",
+   "actividad": "Capacitación · Lo sagrado no es decoración",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
-   "responsable": "Coord. Espiritual + laico formado",
+   "responsable": "Coord. Espiritual + párroco",
    "lugar": "Salón parroquial",
-   "nota": "Pueblo de Dios, cuerpo de Cristo; el lugar del laico."
+   "nota": "Lo sagrado"
   },
   {
    "id": "form-2027-04-18-1",
@@ -510,13 +510,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Sagrada Escritura: leer la Biblia en comunidad",
+   "actividad": "Capacitación · Católica, no «romana»",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "responsable": "Coord. Espiritual + laico formado",
    "lugar": "Salón parroquial",
-   "nota": "Lectio divina paso a paso."
+   "nota": "Católica, no «romana»"
   },
   {
    "id": "forv-2027-05-09-1",
@@ -564,13 +564,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Mariología: María en el misterio de Cristo",
+   "actividad": "Capacitación · ¿Quién inventó la Biblia?",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
    "responsable": "Coord. Espiritual + laico formado",
    "lugar": "Salón parroquial",
-   "nota": "Dogmas marianos y devoción parroquial."
+   "nota": "¿Quién inventó la Biblia?"
   },
   {
    "id": "forv-2027-05-23-1",
@@ -618,13 +618,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Dogmas y Credo: la fe que profesamos",
+   "actividad": "Capacitación · Lo que la Iglesia no inventó",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "responsable": "Coord. Espiritual + laico formado",
    "lugar": "Salón parroquial",
-   "nota": "Trinidad y Encarnación, sin tecnicismos."
+   "nota": "Lo que no inventó"
   },
   {
    "id": "forv-2027-06-06-1",
@@ -888,13 +888,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Liturgia: la Misa parte por parte",
+   "actividad": "Capacitación · Las leyendas negras",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "responsable": "Coord. Espiritual + laico formado",
    "lugar": "Salón parroquial",
-   "nota": "Ritos, signos y tiempos de la celebración."
+   "nota": "Leyendas negras"
   },
   {
    "id": "form-2027-07-25-1",
@@ -1014,13 +1014,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Eucaristía y adoración",
+   "actividad": "Capacitación · Leyendas blancas y devoción con cabeza",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "responsable": "Coord. Espiritual + párroco",
    "lugar": "Salón parroquial",
-   "nota": "Presencia real y cómo acompañar la adoración."
+   "nota": "Leyendas blancas"
   },
   {
    "id": "form-2027-08-22-1",
@@ -1284,13 +1284,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Sacramentos: signos que dan vida",
+   "actividad": "Capacitación · Confesarse: el sacramento que da paz",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "responsable": "Párroco + Coord. Espiritual",
    "lugar": "Salón parroquial",
-   "nota": "Los siete sacramentos y el servicio."
+   "nota": "Confesarse"
   },
   {
    "id": "eco-2027-10-31-1",
@@ -1374,13 +1374,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Misión y discipulado",
+   "actividad": "Capacitación · Hablar de la fe sin pelear",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
    "responsable": "Coord. Espiritual + Facilitador(a)",
    "lugar": "Salón parroquial",
-   "nota": "Kerigma y los diez modos de evangelización."
+   "nota": "Sin pelear"
   },
   {
    "id": "cap-2027-12-04-1",
@@ -1392,13 +1392,13 @@
    "finde": true,
    "hora": "9:00 a.m.",
    "horaMin": 540,
-   "actividad": "Capacitación · Espiritualidad del servidor: oración y discernimiento",
+   "actividad": "Capacitación · El servidor que ora",
    "tipo": "CAP",
    "tipoNombre": "Capacitación",
    "grupo": "escuela",
    "responsable": "Coord. Espiritual + Facilitador(a)",
    "lugar": "Salón parroquial",
-   "nota": "Orar, discernir y servir sin quemarse."
+   "nota": "El servidor que ora"
   },
   {
    "id": "ef-2027-12-06-1",
@@ -2095,82 +2095,82 @@
  ],
  "capacitacion": [
   {
-   "tema": "Cristología: quién es Jesús",
-   "corta": "Quién es Jesús y qué dice de Dios.",
+   "tema": "La Misa, paso a paso",
+   "corta": "La Misa, paso a paso",
    "fecha": "2027-02-20",
-   "detalle": "Qué dijo e hizo Jesús, y qué dice de Dios. Los concilios explicados sin tecnicismos. Ideal para empezar la Cuaresma.",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "detalle": "La estructura, las posturas y los silencios. El lugar del servidor antes, durante y después, con el Misal en la mano.",
+   "responsable": "Coord. Espiritual + párroco",
    "tipo": "CAP"
   },
   {
-   "tema": "Eclesiología: la Iglesia y el laico",
-   "corta": "Pueblo de Dios, cuerpo de Cristo; el lugar del laico.",
+   "tema": "Lo sagrado no es decoración",
+   "corta": "Lo sagrado",
    "fecha": "2027-04-17",
-   "detalle": "Pueblo de Dios, cuerpo de Cristo, templo del Espíritu. Qué lugar ocupa el servidor laico en la parroquia.",
-   "responsable": "Coord. Espiritual + laico formado",
+   "detalle": "Sagrario, vasos sagrados, comunión y silencio. Ocho casos reales y qué hacer en cada uno.",
+   "responsable": "Coord. Espiritual + párroco",
    "tipo": "CAP"
   },
   {
-   "tema": "Sagrada Escritura: leer la Biblia en comunidad",
-   "corta": "Lectio divina paso a paso.",
+   "tema": "Católica, no «romana»",
+   "corta": "Católica, no «romana»",
    "fecha": "2027-05-08",
-   "detalle": "Lectio divina paso a paso y cómo acompañar a otro hermano a leerla.",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
-   "tipo": "CAP"
-  },
-  {
-   "tema": "Mariología: María en el misterio de Cristo",
-   "corta": "Dogmas marianos y devoción parroquial.",
-   "fecha": "2027-05-22",
-   "detalle": "Los dogmas marianos, la devoción de la parroquia y qué significa acompañar a María.",
+   "detalle": "«Católica» es universal: las cuatro señas, los ritos y la iglesia de Roma. Corrector de frases.",
    "responsable": "Coord. Espiritual + laico formado",
    "tipo": "CAP"
   },
   {
-   "tema": "Dogmas y Credo: la fe que profesamos",
-   "corta": "Trinidad y Encarnación, sin tecnicismos.",
+   "tema": "¿Quién inventó la Biblia?",
+   "corta": "¿Quién inventó la Biblia?",
+   "fecha": "2027-05-22",
+   "detalle": "Sola Escritura, Constantino y el canon. Y el nombre de Dios: Yahvé, Jehová y «Señor».",
+   "responsable": "Coord. Espiritual + laico formado",
+   "tipo": "CAP"
+  },
+  {
+   "tema": "Lo que la Iglesia no inventó",
+   "corta": "Lo que no inventó",
    "fecha": "2027-06-05",
-   "detalle": "Trinidad y Encarnación: por qué la Iglesia definió lo que definió y cómo se explica hoy.",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "detalle": "María, los santos, el purgatorio, la confesión y la Eucaristía: las cinco acusaciones de siempre.",
+   "responsable": "Coord. Espiritual + laico formado",
    "tipo": "CAP"
   },
   {
-   "tema": "Liturgia: la Misa parte por parte",
-   "corta": "Ritos, signos y tiempos de la celebración.",
+   "tema": "Las leyendas negras",
+   "corta": "Leyendas negras",
    "fecha": "2027-07-24",
-   "detalle": "Ritos, signos y tiempos. Qué hace el servidor antes, durante y después de la celebración.",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "detalle": "Inquisición, Galileo, Cruzadas y Pío XII: qué se dice, qué pasó y qué respondo.",
+   "responsable": "Coord. Espiritual + laico formado",
    "tipo": "CAP"
   },
   {
-   "tema": "Eucaristía y adoración",
-   "corta": "Presencia real y cómo acompañar la adoración.",
+   "tema": "Leyendas blancas y devoción con cabeza",
+   "corta": "Leyendas blancas",
    "fecha": "2027-08-21",
-   "detalle": "Presencia real, comunión y adoración. Cómo acompañar a un hermano en el silencio.",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "detalle": "Reliquias, apariciones y cadenas. La procesión y la Misa. Dogma, doctrina y piedad.",
+   "responsable": "Coord. Espiritual + párroco",
    "tipo": "CAP"
   },
   {
-   "tema": "Sacramentos: signos que dan vida",
-   "corta": "Los siete sacramentos y el servicio.",
+   "tema": "Confesarse: el sacramento que da paz",
+   "corta": "Confesarse",
    "fecha": "2027-10-30",
-   "detalle": "Los siete sacramentos y el lugar del servicio dentro de la vida sacramental.",
-   "responsable": "Coord. Espiritual + sacerdote invitado",
+   "detalle": "El sacramento, el miedo al confesor y el sigilo. Buzón anónimo y confesiones al final.",
+   "responsable": "Párroco + Coord. Espiritual",
    "tipo": "CAP"
   },
   {
-   "tema": "Misión y discipulado",
-   "corta": "Kerigma y los diez modos de evangelización.",
+   "tema": "Hablar de la fe sin pelear",
+   "corta": "Sin pelear",
    "fecha": "2027-11-20",
-   "detalle": "Kerigma, discipulado y los diez modos de evangelización del Manual (apéndice, p. 147).",
+   "detalle": "Doce objeciones en juego de roles y el método de los 30 segundos. Incluye los abusos.",
    "responsable": "Coord. Espiritual + Facilitador(a)",
    "tipo": "CAP"
   },
   {
-   "tema": "Espiritualidad del servidor: oración y discernimiento",
-   "corta": "Orar, discernir y servir sin quemarse.",
+   "tema": "El servidor que ora",
+   "corta": "El servidor que ora",
    "fecha": "2027-12-04",
-   "detalle": "Cómo orar, cómo discernir y cómo servir sin quemarse. Cierre del año, en Adviento.",
+   "detalle": "La escalera de lectura: el Evangelio, la lectio, el Compendio y Marcos. Regla de vida para 2028.",
    "responsable": "Coord. Espiritual + Facilitador(a)",
    "tipo": "CAP"
   }
