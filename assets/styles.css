@@ -935,8 +935,8 @@ body.reunion .solo-lectura { display: inline-flex; }
 /* ---------- 24. La paloma y el movimiento al hacer scroll ---------- */
 
 .paloma {
-  position: absolute; left: 36%; top: -10%; width: min(40vw, 560px); color: var(--oro-2);
-  opacity: .38; pointer-events: none; will-change: transform;
+  position: absolute; left: 36%; top: -3%; width: min(40vw, 560px); color: var(--oro-2);
+  opacity: .42; pointer-events: none; will-change: transform;
   filter: drop-shadow(0 22px 44px rgba(122, 27, 54, .18));
 }
 .paloma__lienzo { transform-origin: 50% 50%; }
@@ -958,18 +958,8 @@ body.reunion .solo-lectura { display: inline-flex; }
   66%      { translate: 8px -12px; rotate: -2deg; }
 }
 
-/* barra de avance de lectura */
-.progreso {
-  position: fixed; inset: 0 0 auto 0; height: 2.5px; z-index: 95; transform-origin: 0 50%;
-  background: linear-gradient(90deg, var(--vino), var(--vino-2) 45%, var(--oro-2));
-  opacity: 0;
-}
-
 /* lo moderno: animaciones atadas al scroll, sin JavaScript */
 @supports (animation-timeline: scroll()) {
-  .progreso { opacity: .9; animation: avance linear both; animation-timeline: scroll(root block); }
-  @keyframes avance { from { scale: 0 1; } to { scale: 1 1; } }
-
   .paloma__lienzo {
     animation: parpadeo linear both;
     animation-timeline: scroll(root block);
@@ -999,10 +989,9 @@ body.reunion .solo-lectura { display: inline-flex; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .paloma, .paloma__ala--arriba, .paloma__ala--abajo, .paloma__lienzo, .progreso { animation: none !important; }
-  .progreso { display: none; }
+  .paloma, .paloma__ala--arriba, .paloma__ala--abajo, .paloma__lienzo { animation: none !important; }
 }
 
 @media print {
-  .paloma, .progreso { display: none !important; }
+  .paloma { display: none !important; }
 }
