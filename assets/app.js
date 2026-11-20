@@ -330,7 +330,8 @@ function tarjeta(e) {
   const editado = !!ESTADO.cambios.editados[e.id];
   const nuevo = e.id.startsWith("nuevo-");
   const nota = e.nota ? `<p class="ev-nota">${esc(e.nota)}</p>` : "";
-  const acuerdo = ESTADO.decisiones[e.id]?.texto;
+  const anotacion = ESTADO.decisiones[e.id];
+  const acuerdo = anotacion?.texto;
   return `<article class="evento ${editado ? "editado" : ""} ${nuevo ? "nuevo" : ""}"
       data-id="${e.id}" style="--c:${e.color}" tabindex="0" role="button" aria-label="${esc(e.actividad)}">
     <div class="ev-fecha ${e.finde ? "ev-finde" : ""}">
@@ -344,7 +345,7 @@ function tarjeta(e) {
         ${e.lugar ? `<span><svg viewBox="0 0 24 24"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>${esc(e.lugar)}</span>` : ""}
       </div>
       ${nota}
-      ${acuerdo ? `<p class="ev-decision"><b>Acuerdo del EF:</b> ${esc(acuerdo)}</p>` : ""}
+      ${acuerdo ? `<p class="ev-decision${anotacion.estado === "observacion" ? " ev-decision--obs" : ""}"><b>${anotacion.estado === "observacion" ? "Por decidir:" : "Acuerdo del EF:"}</b> ${esc(acuerdo)}</p>` : ""}
     </div>
     <div class="ev-lado">
       <span class="etiqueta" style="--c:${e.color}">${e.tipoNombre}</span>
@@ -491,9 +492,12 @@ function abrirEvento(id) {
     ${e.responsable ? `<div class="det__fila"><b>Responsable</b><span>${esc(e.responsable)}</span></div>` : ""}
     ${e.lugar ? `<div class="det__fila"><b>Lugar</b><span>${esc(e.lugar)}</span></div>` : ""}
     ${e.nota ? `<div class="det__fila"><b>Nota</b><span>${esc(e.nota)}</span></div>` : ""}
-    ${ESTADO.decisiones[e.id] ? `<div class="det__fila"><b>Decisión del EF</b><span>${esc(ESTADO.decisiones[e.id].texto)}</span></div>` : ""}
+    ${ESTADO.decisiones[e.id] ? `<div class="det__fila"><b>${ESTADO.decisiones[e.id].estado === "observacion" ? "Observación" : "Acuerdo del EF"}</b><span>${esc(ESTADO.decisiones[e.id].texto)}</span></div>` : ""}
     <div class="det__fila"><b>Referencia</b><span>${refDe(e.tipo)}</span></div>
-    <p style="margin-top:22px"><button class="btn solo-lectura" data-editar="${e.id}">Editar esta actividad</button></p>`);
+    <p style="margin-top:22px">
+      <button class="btn solo-lectura" data-editar="${e.id}">Editar esta actividad</button>
+      ${ESTADO.decisiones[e.id] ? `<button class="btn solo-lectura btn--fantasma" data-quitar-nota="${e.id}">Quitar la anotación</button>` : ""}
+    </p>`);
 }
 
 function refDe(tipo) {
@@ -678,6 +682,9 @@ function abrirEditor(id, fechaPorDefecto, mes) {
   $("#f_lugar").value = e?.lugar || "";
   $("#f_nota").value = e?.nota || "";
   $("#f_decision").value = ESTADO.decisiones[id]?.texto || "";
+  const estadoNota = ESTADO.decisiones[id]?.estado || "acuerdo";
+  const radio = document.querySelector(`input[name="f_estado"][value="${estadoNota}"]`);
+  if (radio) radio.checked = true;
   $("#f_motivo").value = "";
   $("#btnBorrar").hidden = !e;
 
@@ -709,6 +716,7 @@ function guardarEditor(ev) {
   if (!ESTADO.datos.tipos[datos.tipo]) datos.tipo = "EF";
   const motivo = $("#f_motivo").value.trim();
   const decision = $("#f_decision").value.trim();
+  const estadoNota = document.querySelector('input[name="f_estado"]:checked')?.value || "acuerdo";
   const autor = ESTADO.autor || "Equipo Facilitador";
   const avisos = diagnostico(datos.fecha, datos.hora, datos.tipo, EDITANDO)
     .filter((a) => a.n !== "bajo").map((a) => a.t);
@@ -734,7 +742,7 @@ function guardarEditor(ev) {
       if (previo && !diferencias(base, previo).length) delete ESTADO.cambios.editados[EDITANDO];
     }
 
-    if (decision) ESTADO.decisiones[EDITANDO] = { texto: decision, autor, fecha: new Date().toISOString(), avisos };
+    if (decision) ESTADO.decisiones[EDITANDO] = { texto: decision, estado: estadoNota, autor, fecha: new Date().toISOString(), avisos };
     else delete ESTADO.decisiones[EDITANDO];
 
     ESTADO.historial.push({
@@ -743,7 +751,7 @@ function guardarEditor(ev) {
       antes: soloCampos(antes),
       despues: soloCampos(datos),
       campos: cambio,
-      motivo, decision, avisos, autor, fecha: new Date().toISOString(),
+      motivo, decision, estadoNota, avisos, autor, fecha: new Date().toISOString(),
     });
     toast(cambio.length
       ? (decision ? "Cambio y acuerdo guardados" : "Cambio guardado")
@@ -757,7 +765,7 @@ function guardarEditor(ev) {
       grupo: ESTADO.datos.tipos[datos.tipo].grupo, horaMin: horaMin(datos.hora), color: ESTADO.datos.tipos[datos.tipo].color,
     };
     ESTADO.cambios.creados.push(nuevo);
-    if (decision) ESTADO.decisiones[id] = { texto: decision, autor, fecha: new Date().toISOString(), avisos };
+    if (decision) ESTADO.decisiones[id] = { texto: decision, estado: estadoNota, autor, fecha: new Date().toISOString(), avisos };
     ESTADO.historial.push({ accion: "crear", id, antes: null, despues: nuevo, motivo, decision, avisos,
       autor, fecha: new Date().toISOString() });
     toast("Actividad agregada", "ok");
@@ -1015,7 +1023,7 @@ function filaCambio(h) {
       ? campos.map((k) => `\`${k}\`: ${JSON.stringify(h.antes?.[k] ?? "")} → ${JSON.stringify(h.despues?.[k] ?? "")}`).join("; ")
       : "—";
   } else if (h.accion === "acuerdo") {
-    detalle = h.decision ? "solo acuerdo del EF" : "solo nota";
+    detalle = h.decision ? (h.estadoNota === "observacion" ? "solo observación" : "solo acuerdo del EF") : "solo nota";
   } else {
     detalle = `${f.tipo || ""} · ${f.fecha ? fmtLargo(f.fecha) : "sin fecha"} · ${f.responsable || "sin responsable"}`;
   }
@@ -1038,13 +1046,17 @@ function actaMarkdown(dia = "") {
     ? dias.map((d) => `### Reunión del ${fmtFechaCompleta(d)}\n\n${tablaCambios(hist.filter((h) => diaISO(h.fecha) === d))}`).join("\n\n")
     : tablaCambios([]);
 
-  const tablaDec = decs.length
-    ? "| Actividad | Fecha de la actividad | Decisión | Quién | Se acordó |\n|---|---|---|---|---|\n" +
-      decs.map(([id, d]) => {
+  const conEstado = (d) => d.estado || "acuerdo";
+  const acuerdos = decs.filter(([, d]) => conEstado(d) === "acuerdo");
+  const observaciones = decs.filter(([, d]) => conEstado(d) === "observacion");
+
+  const tablaNotas = (lista, vacio) => (lista.length
+    ? "| Actividad | Fecha de la actividad | Qué se anotó | Quién | Cuándo |\n|---|---|---|---|---|\n" +
+      lista.map(([id, d]) => {
         const e = ESTADO.eventos.find((x) => x.id === id) || {};
         return `| ${e.actividad || id} | ${e.fecha ? fmtLargo(e.fecha) : "—"} | ${d.texto} | ${d.autor} | ${fmtFechaCompleta(diaISO(d.fecha))} |`;
       }).join("\n")
-    : "_Sin decisiones registradas._";
+    : vacio);
 
   const total = ESTADO.eventos.length;
   const titulo = dia ? `# Acta de la reunión del ${fmtFechaCompleta(dia)}` : "# Acta de cambios · Calendario 2027";
@@ -1057,9 +1069,13 @@ ${ESTADO.autor ? `**Quien anota:** ${ESTADO.autor}\n` : ""}${dia ? "" : `Generad
 
 ${cuerpo}
 
-## Decisiones del Equipo Facilitador
+## Acuerdos del Equipo Facilitador
 
-${tablaDec}
+${tablaNotas(acuerdos, "_Sin acuerdos registrados._")}
+
+## Observaciones y pendientes
+
+${tablaNotas(observaciones, "_Sin observaciones pendientes._")}
 
 ## Notas de la reunión
 
@@ -1183,7 +1199,7 @@ function enganchar() {
     `<a href="#mes-${i + 1}" data-mes="${i + 1}">${MESES_C[i]}</a>`).join("");
 
   document.addEventListener("click", (ev) => {
-    const t = ev.target.closest("[data-manual],[data-ir],[data-editar],[data-borrar],[data-agregar],[data-descargar],[data-junta],[data-cerrar-cajon],[data-usar-fecha]");
+    const t = ev.target.closest("[data-manual],[data-ir],[data-editar],[data-borrar],[data-agregar],[data-descargar],[data-junta],[data-cerrar-cajon],[data-usar-fecha],[data-quitar-nota]");
     if (!t) return;
     if (t.dataset.manual) { ev.preventDefault(); abrirManual(t.dataset.manual); }
     if (t.dataset.ir) { ev.preventDefault(); document.getElementById(`mes-${t.dataset.ir}`)?.scrollIntoView({ behavior: "smooth" }); }
@@ -1194,6 +1210,16 @@ function enganchar() {
     if (t.dataset.junta) abrirJunta(t.dataset.ciclo, t.dataset.junta.split("-").pop());
     if (t.hasAttribute("data-cerrar-cajon")) cerrarCajon();
     if (t.dataset.usarFecha) { $("#f_fecha").value = t.dataset.usarFecha; pintarDiag(); }
+    if (t.dataset.quitarNota) {
+      const id = t.dataset.quitarNota;
+      if (!confirm("¿Quitar la anotación de esta actividad?")) return;
+      delete ESTADO.decisiones[id];
+      guardarLocal();
+      marcarSucio();
+      refrescar();
+      cerrarCajon();
+      toast("Anotación quitada");
+    }
   });
 
   // tarjetas de evento

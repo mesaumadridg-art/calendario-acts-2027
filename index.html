@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=16">
+<link rel="stylesheet" href="assets/styles.css?v=17">
 </head>
 <body>
 
@@ -405,8 +405,12 @@
       </div>
 
       <div class="campo campo--ancho">
-        <label for="f_decision">Decisión del EF <span class="ayuda">(se guarda en el acta, aunque no cambies nada más)</span></label>
+        <label for="f_decision">Anotación del EF <span class="ayuda">(se guarda en el acta, aunque no cambies nada más)</span></label>
         <textarea id="f_decision" name="decision" rows="3" placeholder="Ej. Se aprueba mover la venta al sábado 12; queda pendiente confirmar el salón."></textarea>
+        <div class="pills" role="radiogroup" aria-label="Tipo de anotación" style="margin-top:8px">
+          <label class="pill"><input type="radio" name="f_estado" value="acuerdo" checked><span>Acuerdo tomado</span></label>
+          <label class="pill"><input type="radio" name="f_estado" value="observacion"><span>Observación, sin decidir</span></label>
+        </div>
       </div>
 
       <div class="campo campo--ancho">
@@ -441,6 +445,6 @@
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
-<script type="module" src="assets/app.js?v=26"></script>
+<script type="module" src="assets/app.js?v=27"></script>
 </body>
 </html>
