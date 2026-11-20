@@ -881,12 +881,25 @@ async function escribirEnCarpeta(h, textos) {
   let p = await h.queryPermission({ mode: "readwrite" });
   if (p !== "granted") p = await h.requestPermission({ mode: "readwrite" });
   if (p !== "granted") throw new Error("sin permiso");
-  for (const [nombre, txt] of Object.entries(textos)) {
-    const fh = await h.getFileHandle(nombre, { create: true });
+  for (const [ruta, txt] of Object.entries(textos)) {
+    const partes = ruta.split("/");
+    let dir = h;
+    for (const trozo of partes.slice(0, -1)) dir = await dir.getDirectoryHandle(trozo, { create: true });
+    const fh = await dir.getFileHandle(partes[partes.length - 1], { create: true });
     const w = await fh.createWritable();
     await w.write(txt);
     await w.close();
   }
+}
+
+async function listarReuniones() {
+  if (!CARPETA) return [];
+  try {
+    const d = await CARPETA.getDirectoryHandle("reuniones");
+    const out = [];
+    for await (const [n] of d.entries()) if (n.endsWith(".json")) out.push(n.replace(".json", ""));
+    return out.sort().reverse();
+  } catch { return []; }
 }
 
 function sello() {
@@ -901,13 +914,19 @@ async function guardarReunion(opts = {}) {
   guardarLocal();
   EN_GUARDADO = false;
 
+  const hoy = new Date().toISOString().slice(0, 10);
   const json = JSON.stringify({ ...cambiosJSON(), acta: actaMarkdown() }, null, 1);
   const md = actaMarkdown();
   let via = "";
 
   if (CARPETA) {
     try {
-      await escribirEnCarpeta(CARPETA, { "reunion_acta.json": json, "reunion_acta.md": md });
+      await escribirEnCarpeta(CARPETA, {
+        "reunion_acta.json": json,                       // todo, acumulado
+        "reunion_acta.md": md,
+        [`reuniones/${hoy}.json`]: JSON.stringify({ ...cambiosJSON(hoy), acta: actaMarkdown(hoy) }, null, 1),
+        [`reuniones/${hoy}.md`]: actaMarkdown(hoy),      // solo esta reunión
+      });
       via = "carpeta";
     } catch {
       CARPETA = null;
@@ -941,38 +960,66 @@ async function guardarReunion(opts = {}) {
 
 /* ------------------------------------------------------------------ acta */
 
-function actaMarkdown() {
-  const d = ESTADO.datos;
-  const filas = ESTADO.historial.map((h) => {
-    const t = h.accion === "crear" ? "Agregada" : h.accion === "borrar" ? "Borrada" : "Modificada";
-    const f = h.despues || h.antes;
-    const cuando = fmtLargo(f.fecha) + (f.hora ? ` · ${f.hora}` : "");
-    const detalle = h.accion === "editar"
-      ? Object.keys(h.despues).filter((k) => JSON.stringify(h.antes?.[k]) !== JSON.stringify(h.despues[k]))
-          .map((k) => `\`${k}\`: ${JSON.stringify(h.antes?.[k] ?? "")} → ${JSON.stringify(h.despues[k])}`).join("; ")
-      : `${f.tipo} · ${f.responsable || "sin responsable"}`;
-    return `| ${cuando} | ${t} | ${f.actividad} | ${detalle} | ${h.motivo || ""} | ${h.autor} |`;
-  }).join("\n");
+const diaISO = (iso) => String(iso || "").slice(0, 10);
+
+function fmtFechaCompleta(dia) {
+  if (!dia) return "sin fecha";
+  const d = new Date(`${dia}T12:00:00`);
+  return `${DIAS[(d.getDay() + 6) % 7]} ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+function horaDe(iso) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString("es-HN", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function filaCambio(h) {
+  const t = h.accion === "crear" ? "Agregada" : h.accion === "borrar" ? "Borrada" : "Modificada";
+  const f = h.despues || h.antes || {};
+  const detalle = h.accion === "editar"
+    ? Object.keys(h.despues).filter((k) => JSON.stringify(h.antes?.[k]) !== JSON.stringify(h.despues[k]))
+        .map((k) => `\`${k}\`: ${JSON.stringify(h.antes?.[k] ?? "")} → ${JSON.stringify(h.despues[k])}`).join("; ")
+    : `${f.tipo || ""} · ${f.fecha ? fmtLargo(f.fecha) : "sin fecha"} · ${f.responsable || "sin responsable"}`;
+  return `| ${horaDe(h.fecha)} | ${t} | ${f.actividad || "(sin nombre)"} | ${detalle} | ${h.motivo || ""} | ${h.autor || ""} |`;
+}
+
+function tablaCambios(lista) {
+  if (!lista.length) return "_Sin cambios registrados en esta reunión._";
+  return "| Hora | Acción | Actividad | Detalle | Motivo | Autor |\n|---|---|---|---|---|---|\n" +
+    lista.map(filaCambio).join("\n");
+}
+
+function actaMarkdown(dia = "") {
+  const hist = dia ? ESTADO.historial.filter((h) => diaISO(h.fecha) === dia) : ESTADO.historial;
+  const decs = Object.entries(ESTADO.decisiones).filter(([, d]) => !dia || diaISO(d.fecha) === dia);
+  const dias = dia ? [dia] : [...new Set(ESTADO.historial.map((h) => diaISO(h.fecha)).filter(Boolean))].sort();
+
+  const cuerpo = dias.length
+    ? dias.map((d) => `### Reunión del ${fmtFechaCompleta(d)}\n\n${tablaCambios(hist.filter((h) => diaISO(h.fecha) === d))}`).join("\n\n")
+    : tablaCambios([]);
+
+  const tablaDec = decs.length
+    ? "| Actividad | Fecha de la actividad | Decisión | Quién | Se acordó |\n|---|---|---|---|---|\n" +
+      decs.map(([id, d]) => {
+        const e = ESTADO.eventos.find((x) => x.id === id) || {};
+        return `| ${e.actividad || id} | ${e.fecha ? fmtLargo(e.fecha) : "—"} | ${d.texto} | ${d.autor} | ${fmtFechaCompleta(diaISO(d.fecha))} |`;
+      }).join("\n")
+    : "_Sin decisiones registradas._";
 
   const total = ESTADO.eventos.length;
-  return `# Acta de cambios · Calendario 2027
+  const titulo = dia ? `# Acta de la reunión del ${fmtFechaCompleta(dia)}` : "# Acta de cambios · Calendario 2027";
+  return `${titulo}
 
 **Parroquia El Salvador del Mundo · Equipo Facilitador de Retiros ACTS**
-Generada: ${new Date().toLocaleString("es-HN")}
-${ESTADO.autor ? `**Quien anota:** ${ESTADO.autor}\n` : ""}
-Actividades después de los cambios: **${total}** · Cambios registrados: **${ESTADO.historial.length}**
+${ESTADO.autor ? `**Quien anota:** ${ESTADO.autor}\n` : ""}${dia ? "" : `Generada: ${new Date().toLocaleString("es-HN")}\n`}Actividades después de los cambios: **${total}** · Cambios registrados${dia ? " en esta reunión" : ""}: **${hist.length}**
 
-| Cuándo | Acción | Actividad | Detalle | Motivo | Autor |
-|---|---|---|---|---|---|
-${filas || "| — | — | Sin cambios registrados | — | — | — |"}
+## ${dia ? "Cambios de esta reunión" : "Cambios por reunión"}
+
+${cuerpo}
 
 ## Decisiones del Equipo Facilitador
 
-${Object.keys(ESTADO.decisiones).length ? "| Actividad | Fecha | Decisión | Quién |\n|---|---|---|---|\n" +
-  Object.entries(ESTADO.decisiones).map(([id, d]) => {
-    const e = ESTADO.eventos.find((x) => x.id === id) || {};
-    return `| ${e.actividad || id} | ${e.fecha ? fmtLargo(e.fecha) : "—"} | ${d.texto} | ${d.autor} |`;
-  }).join("\n") : "_Sin decisiones registradas._"}
+${tablaDec}
 
 ## Notas de la reunión
 
@@ -983,39 +1030,49 @@ _Escribe aquí lo que se acordó y no cabe en una fila._
 ## Para el documento imprimible
 
 Este archivo es la fuente que Hermes lee para actualizar \`datos_calendario.py\`, el Excel y los PDF.
-Los cambios de fecha, responsable y concepto se aplican tal como están en \`cambios.json\`.
+Los cambios de fecha, responsable y concepto se aplican tal como están.
 `;
 }
 
-function cambiosJSON() {
+function cambiosJSON(dia = "") {
+  const hist = dia ? ESTADO.historial.filter((h) => diaISO(h.fecha) === dia) : ESTADO.historial;
+  const decs = Object.fromEntries(Object.entries(ESTADO.decisiones).filter(([, d]) => !dia || diaISO(d.fecha) === dia));
   return {
-    version: 1,
+    version: 2,
     actualizado: new Date().toISOString(),
+    reunion: dia || "todas",
     autor: ESTADO.autor || "Equipo Facilitador",
     base: "calendario-acts-2027",
-    resumen: { totalEventos: ESTADO.eventos.length, cambios: ESTADO.historial.length },
+    resumen: { totalEventos: ESTADO.eventos.length, cambios: hist.length, reuniones: [...new Set(ESTADO.historial.map((h) => diaISO(h.fecha)))].sort() },
     eventos: ESTADO.eventos.map((e) => ({
       id: e.id, fecha: e.fecha, hora: e.hora, actividad: e.actividad, tipo: e.tipo,
       responsable: e.responsable, lugar: e.lugar, nota: e.nota,
     })),
     cambios: { creados: ESTADO.cambios.creados.map((e) => e.id), editados: ESTADO.cambios.editados, borrados: ESTADO.cambios.borrados },
-    decisiones: ESTADO.decisiones,
-    historial: ESTADO.historial,
+    decisiones: decs,
+    historial: hist,
   };
 }
 
-function verActa() {
+async function verActa() {
+  const reuniones = await listarReuniones();
+  const hoy = new Date().toISOString().slice(0, 10);
   const md = actaMarkdown();
+  const dias = new Set(ESTADO.historial.map((h) => diaISO(h.fecha)));
+  const plural = dias.size === 1 ? "reunión" : "reuniones";
   abrirCajon(`<p class="manual__fuente">Acta de la reunión</p>
-    <h2 class="manual__tema" id="cajonTitulo">${ESTADO.historial.length} cambios registrados</h2>
-    <div class="manual__cita" style="font-family:var(--sans);font-size:12.5px;white-space:pre-wrap;max-height:52vh;overflow:auto">${esc(md.slice(0, 6000))}</div>
+    <h2 class="manual__tema" id="cajonTitulo">${ESTADO.historial.length} cambios en ${dias.size} ${plural}</h2>
+    <p class="nota-mini">Hoy es ${fmtFechaCompleta(hoy)}. Al guardar se escribe <b>reuniones/${hoy}.md</b> con lo de hoy y, aparte,
+      el acumulado <b>reunion_acta.md</b> con todo.</p>
+    <div class="manual__cita" style="font-family:var(--sans);font-size:12.5px;white-space:pre-wrap;max-height:46vh;overflow:auto">${esc(md.slice(0, 6000))}</div>
     <div class="campo" style="margin-top:16px">
       <label for="autorActa">Quién anota</label>
       <input id="autorActa" value="${esc(ESTADO.autor || "")}" placeholder="Equipo Facilitador">
     </div>
     <p class="nota-mini" style="margin-top:14px">${CARPETA
-      ? `Carpeta: <b>${esc(CARPETA.name)}</b>. El acta se escribe ahí cada vez que guardas, y Hermes la lee de ahí.`
+      ? `Carpeta: <b>${esc(CARPETA.name)}</b>. El acta se escribe ahí sola y Hermes la lee de ahí.`
       : "Carpeta: sin elegir. «Guardar acta» la descarga en Descargas (.json). Si eliges una carpeta, se escribe sola ahí y Hermes la recoge."}</p>
+    ${reuniones.length ? `<p class="nota-mini">Guardadas: ${reuniones.map((r) => fmtFechaCompleta(r)).join(" · ")}</p>` : ""}
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn btn--solido" id="btnGuardarActa">Guardar acta</button>
       <button class="btn" id="btnElegirCarpeta">Elegir carpeta…</button>
